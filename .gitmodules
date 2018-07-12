@@ -1,3 +1,0 @@
-[submodule "sklearn"]
-	path = sklearn
-	url = git@github.com:caioaao/scikit-learn.git
