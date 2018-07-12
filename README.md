@@ -12,4 +12,4 @@ wil create a conda env with everything installed. After that, just run
 ## References
 
 [1] Original stacked generalization paper: http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.56.1533
-[2] @MLWave ensemble guide: https://mlwave.com/kaggle-ensembling-guide/
+[2] [@MLWave](https://github.com/MLWave)'s ensemble guide: https://mlwave.com/kaggle-ensembling-guide/

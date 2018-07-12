@@ -77,7 +77,7 @@ class StackingPipeline(Pipeline):
     def _fit_transform_one(self):
         return _fit_blend_one
 
-    def _validate_steps(self):
+    def _validate_transformers(self):
         super(StackingPipeline, self)._validate_steps()
         names, estimators = zip(*self.steps)
 
