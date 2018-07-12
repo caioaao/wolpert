@@ -43,6 +43,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     conda create -n $ENVNAME --yes $TO_INSTALL
     source activate $ENVNAME
 
+    pip install nose=1.3.7
     # for python 3.4, conda does not have recent pytest packages
     if [[ "$PYTHON_VERSION" == "3.4" ]]; then
         pip install pytest==3.5
