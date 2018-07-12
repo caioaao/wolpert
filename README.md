@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/caioaao/wolpert.svg?style=svg)](https://circleci.com/gh/caioaao/wolpert)
+
 # Wolpert, a stacked generalization framework
 
 ## Install
