@@ -67,7 +67,7 @@ def test_regression():
                 _check_estimator(blended_reg, **fit_params)
 
 
-def test_transformer_from_classification():
+def test_classification():
     # tests classification with various parameter settings
 
     testcases = [{'clf': RandomForestClassifier(random_state=RANDOM_SEED),
