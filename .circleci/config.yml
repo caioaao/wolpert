@@ -1,0 +1,21 @@
+version: 2
+
+jobs:
+  python3:
+    docker:
+      - image: circleci/python:3.6.1
+    environment:
+      - MINICONDA_PATH: ~/miniconda
+      - CONDA_ENV_NAME: wolpert_devel
+    steps:
+      - checkout
+      - restore_cache: deps1-{{ .Branch }}
+      - run: ./dev_tools/dev_env.sh
+      - save_cache:
+          key: deps1-{{ .Branch }}
+          paths:
+            - "~/miniconda/envs"
+      -run:
+        command: |
+          source activate wolpert_devel
+          pytest wolpert
