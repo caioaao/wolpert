@@ -102,12 +102,12 @@ def _identity_transformer():
     return FunctionTransformer(_identity, accept_sparse=True)
 
 
-def _wrap_estimators(estimators, method='auto', blending_type="cv",
+def _wrap_estimators(named_estimators, method='auto', blending_type="cv",
                      **blending_opts):
     wrapper = _choose_wrapper(blending_type)
     return [(name, wrapper(
         est, method=method, **blending_opts))
-            for name, est in estimators]
+            for name, est in named_estimators]
 
 
 def make_stack_layer(*estimators, method='auto', restack=False, n_jobs=1,
@@ -164,10 +164,14 @@ def make_stack_layer(*estimators, method='auto', restack=False, n_jobs=1,
     """
     named_estimators = _name_estimators(estimators)
 
-    if restack:
-        named_estimators.append(
-            'identity-transformer', _identity_transformer())
-
     transformer_list = _wrap_estimators(
         named_estimators, method=method, **blending_opts)
+
+    if restack:
+        wrapper = _choose_wrapper(blending_type)
+        transformer_list.append(
+            ('identity-transformer', wrapper(_identity_transformer(),
+                                             method='transform',
+                                             **blending_opts)))
+
     return StackingLayer(transformer_list, n_jobs=n_jobs)
