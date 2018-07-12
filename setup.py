@@ -27,6 +27,6 @@ setup(name="wolpert",
       packages=find_packages(include=['wolpert', 'wolpert.*'],
                              exclude=['*.tests', '*.tests.*']),
       version="0.0.1",
-      install_requires=["scikit-learn>=0.19.1"],
+      install_requires=["numpy>=0.14.2", "scikit-learn>=0.19.1"],
       include_package_data=True,
       zip_safe=False)
