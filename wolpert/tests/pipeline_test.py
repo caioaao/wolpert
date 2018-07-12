@@ -4,9 +4,9 @@ from sklearn.model_selection import ParameterGrid, StratifiedKFold
 from sklearn.linear_model import LinearRegression
 from sklearn.svm import LinearSVR
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.base import clone
+from sklearn.base import clone, BaseEstimator
 
-from wolpert.pipeline import StackingLayer, make_stack_layer
+from wolpert.pipeline import StackingLayer, StackingPipeline, make_stack_layer
 from wolpert.wrappers import CVStackableTransformer
 
 iris = datasets.load_iris()
@@ -106,3 +106,35 @@ def test_layer_helper_constructor():
 
         reg_layer = make_stack_layer(*base_estimators, **params)
         _check_layer(reg_layer, params["restack"])
+
+
+class IdentityEstimator(BaseEstimator):
+    def __init__(self):
+        self.last_fit_params = None
+
+    def fit(self, X, y, *args, **kwargs):
+        self.last_fit_params = (X, y)
+        return self
+
+    def predict(self, X, *args, **kwargs):
+        return X
+
+
+def test_pipeline():
+    l0 = make_stack_layer(LinearRegression(), LinearRegression())
+    identity_est = IdentityEstimator()
+    reg = StackingPipeline([("layer-0", clone(l0)),
+                            ("l1", identity_est)])
+
+    X_layer0 = l0.blend(X, y)
+    reg.fit(X, y)
+
+    # second layer must receives the blending results from the first one
+    assert_array_equal(X_layer0, identity_est.last_fit_params[0])
+
+    preds_l0 = l0.fit_transform(X, y)
+
+    preds_pipeline = reg.predict(X)
+
+    # identity estimator must return the same result as first layer
+    assert_array_equal(preds_l0, preds_pipeline)
