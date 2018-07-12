@@ -9,13 +9,49 @@ jobs:
       - CONDA_ENV_NAME: wolpert_devel
     steps:
       - checkout
-      - restore_cache: deps1-{{ .Branch }}
+      - restore_cache:
+          key: deps1-{{ .Branch }}
       - run: ./dev_tools/dev_env.sh
       - save_cache:
           key: deps1-{{ .Branch }}
           paths:
             - "~/miniconda/envs"
+  python2:
+    docker:
+      - image: circleci/python:3.6.1
+    environment:
+      - MINICONDA_PATH: ~/miniconda
+      - CONDA_ENV_NAME: wolpert_devel
+      - PYTHON_VERSION: 2.7
+      - PANDAS_VERSION: 0.13.1
+      - NUMPY_VERSION: 1.8.2
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps1-{{ .Branch }}-py2
+      - run: ./dev_tools/dev_env.sh
+      - save_cache:
+          key: deps1-{{ .Branch }}-py2
+          paths:
+            - "~/miniconda/envs"
+  test:
       -run:
         command: |
           source activate wolpert_devel
           pytest wolpert
+
+
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - python3
+      - test:
+        requires:
+          - python3
+  build-and-test-py2:
+    jobs:
+      - python2
+      - test:
+        requires:
+          - python2
