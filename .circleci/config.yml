@@ -21,6 +21,17 @@ jobs:
           command: |
             . venv/bin/activate
             pytest wolpert
+
+  deploy-verification:
+    docker:
+      - image: circleci/python:3.6.3
+    steps:
+      - run:
+          name: verify git tag
+          command: |
+            . venv/bin/activate
+            python setup.py verify
+
   deploy:
     docker:
       - image: circleci/python:3.6.3
@@ -38,14 +49,9 @@ jobs:
           paths:
             - "venv"
       - run:
-          name: verify git tag
-          command: |
-            . venv/bin/activate
-            python setup.py verify
-      - run:
           name: create pypirc
           command: |
-            echo -e "[pypi]" > ~/.pypirc
+            echo -e "[pypi]" >> ~/.pypirc
             echo -e "username = levlaz" >> ~/.pypirc
             echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
       - run:
@@ -64,12 +70,23 @@ workflows:
       - build-and-test
   build-test-and-deploy:
     jobs:
-      - build-and-test:
+      - deploy-verification:
           filters:
             tags:
               only: /.*/
+            branches:
+              ignore: /.*/
+      - build-and-test:
+          requires:
+            - deploy-verification
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
       - deploy:
           requires:
+            - deploy-verification
             - build-and-test
           filters:
             tags:
