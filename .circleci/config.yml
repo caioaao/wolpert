@@ -52,6 +52,7 @@ jobs:
       - run:
           name: create and deploy packages
           command: |
+            . venv/bin/activate
             python setup.py sdist
             python setup.py bdist_wheel
             twine upload dist/*
