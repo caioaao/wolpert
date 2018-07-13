@@ -22,11 +22,6 @@ jobs:
             . venv/bin/activate
             pytest wolpert
 
-  deploy-verification:
-    docker:
-      - image: circleci/python:3.6.3
-    steps:
-
   deploy:
     docker:
       - image: circleci/python:3.6.3
