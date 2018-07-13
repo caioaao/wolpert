@@ -132,7 +132,8 @@ def make_stack_layer(*estimators, method='auto', restack=False, n_jobs=1,
         responsible for blending one of the estimators.
 
     blending_type: string, optional (default='cv')
-        The strategy to be used when blending.
+        The strategy to be used when blending. Possible values are 'cv' and
+        'holdout'.
 
     **blending_opts: arguments to be passed to the blending wrapper
 
@@ -165,7 +166,8 @@ def make_stack_layer(*estimators, method='auto', restack=False, n_jobs=1,
     named_estimators = _name_estimators(estimators)
 
     transformer_list = _wrap_estimators(
-        named_estimators, method=method, **blending_opts)
+        named_estimators, method=method, blending_type=blending_type,
+        **blending_opts)
 
     if restack:
         wrapper = _choose_wrapper(blending_type)

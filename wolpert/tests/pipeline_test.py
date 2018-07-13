@@ -88,19 +88,37 @@ def test_layer_classification():
         _check_layer(clf_layer, False)
 
 
-STACK_LAYER_FULL_PARAMS = {'cv': [3, StratifiedKFold()],
-                           'restack': [False, True],
-                           'method': ['auto', 'predict', 'predict_proba'],
-                           'n_jobs': [1, 2],
-                           'n_cv_jobs': [1, 2]}
+STACK_LAYER_CV_PARAMS = {'cv': [3, StratifiedKFold()],
+                         'restack': [False, True],
+                         'method': ['auto', 'predict', 'predict_proba'],
+                         'n_jobs': [1, 2],
+                         'n_cv_jobs': [1, 2],
+                         'blending_type': ['cv']}
+
+# TODO refactor to test Restack (but it should be working)
+STACK_LAYER_HOLDOUT_PARAMS = {'restack': [False],
+                              'method': ['auto', 'predict', 'predict_proba'],
+                              'n_jobs': [1, 2],
+                              'blending_type': ['holdout'],
+                              'holdout_size': [.5],
+                              'random_state': [435],
+                              'fit_to_all_data': [True, False]}
 
 
 def test_layer_helper_constructor():
     base_estimators = [LinearRegression(), LinearRegression()]
-    for params in ParameterGrid(STACK_LAYER_FULL_PARAMS):
+
+    for params in ParameterGrid(STACK_LAYER_CV_PARAMS):
         if params['n_jobs'] != 1 and params['n_cv_jobs'] != 1:
             continue  # nested parallelism is not supported
 
+        if params['method'] is 'predict_proba':
+            continue
+
+        reg_layer = make_stack_layer(*base_estimators, **params)
+        _check_layer(reg_layer, params["restack"])
+
+    for params in ParameterGrid(STACK_LAYER_HOLDOUT_PARAMS):
         if params['method'] is 'predict_proba':
             continue
 
