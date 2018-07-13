@@ -1,8 +1,29 @@
 #!/usr/bin/env python
 
+import sys
+import os
+
 from setuptools import setup, find_packages
+from setuptools.command.install import install
+
+VERSION = "0.0.1"
+
+
+class VerifyVersionCommand(install):
+    """Custom command to verify that the git tag matches our version"""
+    description = 'verify that the git tag matches our version'
+
+    def run(self):
+        tag = os.getenv('CIRCLE_TAG')
+
+        if tag != VERSION:
+            info = "Git tag: {0} does not match the version of this app: {1}" \
+                   .format(tag, VERSION)
+            sys.exit(info)
+
 
 setup(name="wolpert",
+      version=VERSION,
       description="Stacked generalization framework",
       url="https://github.com/caioaao/wolpert",
       author="Caio Oliveira",
@@ -24,7 +45,8 @@ setup(name="wolpert",
       package_dir={'wolpert': 'wolpert'},
       packages=find_packages(include=['wolpert', 'wolpert.*'],
                              exclude=['*.tests', '*.tests.*']),
-      version="0.0.1",
       install_requires=["numpy>=0.14.2", "scikit-learn>=0.19.1"],
-      include_package_data=True,
-      zip_safe=False)
+      python_requires='>=3',
+      cmdclass={
+          'verify': VerifyVersionCommand,
+      })
