@@ -54,6 +54,7 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
     ...                             method='predict_proba')
     ...     # doctest: +NORMALIZE_WHITESPACE
     HoldoutStackableTransformer(estimator=GaussianNB(priors=None),
+                                fit_to_all_data=False,
                                 holdout_size=0.2,
                                 method='predict_proba',
                                 random_state=None)
