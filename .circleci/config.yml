@@ -33,6 +33,7 @@ jobs:
           name: install deploy dependencies
           command: |
             . venv/bin/activate
+            pip install wheel
             pip install twine
       - save_cache:
           key: deps1-{{ .Branch }}
