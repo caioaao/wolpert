@@ -33,7 +33,7 @@ jobs:
           name: install deploy dependencies
           command: |
             . env/bin/activate
-            pip install -r twine
+            pip install twine
       - save_cache:
           key: deps1-{{ .Branch }}
           paths:
@@ -58,17 +58,12 @@ jobs:
 
 workflows:
   version: 2
-  build-and-test:
-    jobs:
-      - build-and-test
   build-test-and-deploy:
     jobs:
       - build-and-test:
           filters:
             tags:
               only: /.*/
-            branches:
-              ignore: /.*/
       - deploy:
           requires:
             - build-and-test
