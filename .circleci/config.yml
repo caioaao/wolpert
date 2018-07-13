@@ -58,6 +58,27 @@ jobs:
             python setup.py bdist_wheel
             twine upload dist/*
 
+  build-and-test-py2:
+    docker:
+      - image: circleci/python:2.7.15
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps1-{{ .Branch }}-py2
+      - run:
+          command: |
+            virtualenv venv
+            . venv/bin/activate
+            pip install -r dev_tools/requirements.txt
+      - save_cache:
+          key: deps1-{{ .Branch }}-py2
+          paths:
+            - "venv"
+      - run:
+          command: |
+            . venv/bin/activate
+            pytest wolpert
+
 workflows:
   version: 2
   build-test-and-deploy:
@@ -66,9 +87,14 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - build-and-test-py2:
+          filters:
+            tags:
+              only: /.*/
       - deploy:
           requires:
             - build-and-test
+            - build-and-test-py2
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)*/

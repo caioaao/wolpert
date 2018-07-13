@@ -110,8 +110,7 @@ def _wrap_estimators(named_estimators, method='auto', blending_type="cv",
             for name, est in named_estimators]
 
 
-def make_stack_layer(*estimators, method='auto', restack=False, n_jobs=1,
-                     blending_type="cv", **blending_opts):
+def make_stack_layer(*estimators, **kwargs):
     """Creates a single stack layer to be used in a stacked ensemble.
 
     Parameters
@@ -163,6 +162,12 @@ def make_stack_layer(*estimators, method='auto', restack=False, n_jobs=1,
     -------
     l : StackingLayer
     """
+    method = kwargs.pop('method', 'auto')
+    restack = kwargs.pop('restack', False)
+    n_jobs = kwargs.pop('n_jobs', 1)
+    blending_type = kwargs.pop('blending_type', "cv")
+    blending_opts = kwargs
+
     named_estimators = _name_estimators(estimators)
 
     transformer_list = _wrap_estimators(
