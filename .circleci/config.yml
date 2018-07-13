@@ -12,6 +12,7 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
+            pip install -U pip
             pip install -r dev_tools/requirements.txt
       - save_cache:
           key: deps1-{{ .Branch }}
