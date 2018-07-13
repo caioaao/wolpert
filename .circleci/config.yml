@@ -32,7 +32,7 @@ jobs:
       - run:
           name: install deploy dependencies
           command: |
-            . env/bin/activate
+            . venv/bin/activate
             pip install twine
       - save_cache:
           key: deps1-{{ .Branch }}
@@ -47,7 +47,7 @@ jobs:
           name: create pypirc
           command: |
             echo -e "[pypi]" >> ~/.pypirc
-            echo -e "username = levlaz" >> ~/.pypirc
+            echo -e "username = caioaao" >> ~/.pypirc
             echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
       - run:
           name: create and deploy packages
