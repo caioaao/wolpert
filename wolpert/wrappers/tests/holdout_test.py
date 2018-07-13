@@ -1,15 +1,14 @@
 from copy import deepcopy
 
-import numpy as np
-
-from sklearn.utils.testing import assert_equal, assert_array_equal
+from sklearn.utils.testing import (assert_equal, assert_array_equal,
+                                   assert_almost_equal)
 from sklearn import datasets
-from sklearn.model_selection import ParameterGrid, StratifiedKFold
+from sklearn.model_selection import ParameterGrid
 from sklearn.linear_model import RidgeClassifier, LinearRegression
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.ensemble import RandomForestClassifier
 
-from wolpert.wrappers import CVStackableTransformer
+from wolpert.wrappers import HoldoutStackableTransformer
 
 from .utils import check_estimator
 
@@ -18,17 +17,18 @@ X, y = iris.data[:, 1:3], iris.target
 
 RANDOM_SEED = 8939
 
-META_ESTIMATOR_PARAMS = {'cv': [2, StratifiedKFold()],
-                         'n_cv_jobs': [1, 2]}
-
-META_ESTIMATOR_FIT_PARAMS = [{}, {"sample_weight": np.ones(y.shape)}]
+META_ESTIMATOR_PARAMS = {'holdout_size': [.1, .2, .5],
+                         'random_state': [132]}
 
 
 def _check_estimator(estimator, **fit_params):
+    # basic checks
     check_estimator(estimator, X, y, **fit_params)
 
-    # checks that result from blend has the same length as input
-    estimator.blend(X, y)
+    # checks that the transformed dataset is roughly the same size as
+    # holdout_size parameter
+    Xt = estimator.blend(X, y, **fit_params)
+    assert_almost_equal(estimator.holdout_size, Xt.shape[0] / X.shape[0])
 
 
 def test_regression():
@@ -41,9 +41,8 @@ def test_regression():
 
     for reg in regressors:
         for params in ParameterGrid(meta_params):
-            blended_reg = CVStackableTransformer(reg, **params)
-            for fit_params in META_ESTIMATOR_FIT_PARAMS:
-                _check_estimator(blended_reg, **fit_params)
+            blended_reg = HoldoutStackableTransformer(reg, **params)
+            _check_estimator(blended_reg)
 
 
 def test_classification():
@@ -65,6 +64,5 @@ def test_classification():
         meta_params.update(META_ESTIMATOR_PARAMS)
 
         for params in ParameterGrid(meta_params):
-            blended_clf = CVStackableTransformer(clf, **params)
-            for fit_params in META_ESTIMATOR_FIT_PARAMS:
-                _check_estimator(blended_clf, **fit_params)
+            blended_clf = HoldoutStackableTransformer(clf, **params)
+            _check_estimator(blended_clf)
