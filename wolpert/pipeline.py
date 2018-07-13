@@ -13,8 +13,8 @@ def _blend_one(transformer, X, y, weight, **fit_params):
 
 
 def _fit_blend_one(transformer, X, y, weight, **fit_params):
-    Xt = _blend_one(transformer, X, y, weight, **fit_params)
-    return Xt, transformer.fit(X, y, **fit_params)
+    Xt = transformer.fit_blend(X, y, **fit_params)
+    return _apply_weight(Xt, weight), transformer
 
 
 class StackingLayer(FeatureUnion):

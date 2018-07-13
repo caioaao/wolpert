@@ -85,7 +85,6 @@ class CVStackableTransformer(BaseStackableTransformer):
         -------
         X_transformed : sparse matrix, shape=(n_samples, n_out)
             Transformed dataset.
-
         """
         self.estimator_ = clone(self.estimator)
         preds = cross_val_predict(self.estimator_, X, y, cv=self.cv,
@@ -97,3 +96,28 @@ class CVStackableTransformer(BaseStackableTransformer):
             preds = preds.reshape(-1, 1)
 
         return preds
+
+    def fit_blend(self, X, y, **fit_params):
+        """Transform dataset using cross validation and fits the estimator to the
+        entire dataset.
+
+        Parameters
+        ----------
+        X : array-like or sparse matrix, shape=(n_samples, n_features)
+            Input data used to build forests. Use ``dtype=np.float32`` for
+            maximum efficiency.
+
+        y : array-like, shape = [n_samples]
+            Target values.
+
+        **fit_params : parameters to be passed to the base estimator.
+
+        Returns
+        -------
+        X_transformed : sparse matrix, shape=(n_samples, n_out)
+            Transformed dataset.
+
+        """
+        blend_results = self.blend(X, y, **fit_params)
+        self.fit(X, y, **fit_params)
+        return blend_results
