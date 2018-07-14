@@ -20,7 +20,66 @@ def _fit_blend_one(transformer, X, y, weight, **fit_params):
 class StackingLayer(FeatureUnion):
     """Creates a single layer for the stacked ensemble.
 
-    All transformers must implement ``blend``.
+    This works similarly to scikit learn's ``FeatureUnion`` class, with the
+    only difference that it also exposes methods for blending all estimators
+    for building stacked ensembles.
+
+    All transformers must implement ``blend`` or, in other words, all
+    transformers must be wrapped with a class that inherits from
+    ``BaseStackableTransformer``.
+
+    Some precautions must be taken for this to work properly: when calling
+    ``StackingLayer`` constructor directly, make sure all estimators are
+    wrapped with the exact same wrapper.
+
+    Parameters of the transformers may be set using its name and the parameter
+    name separated by a '__'. A transformer may be replaced entirely by
+    setting the parameter with its name to another transformer,
+    or removed by setting to ``None``.
+
+    Parameters
+    ----------
+    transformer_list : list of (string, transformer) tuples
+        List of transformer objects to be applied to the data. The first
+        half of each tuple is the name of the transformer.
+
+    n_jobs : int, optional
+        Number of jobs to run in parallel (default 1).
+
+    transformer_weights : dict, optional
+        Multiplicative weights for features per transformer.
+        Keys are transformer names, values the weights.
+
+    See also
+    --------
+    wolpert.pipeline.make_stack_layer : convenience function for simplified
+        layer construction.
+
+    Examples
+    --------
+    >>> from sklearn.naive_bayes import GaussianNB
+    >>> from sklearn.svm import SVR
+    >>> from wolpert.wrappers import CVStackableTransformer
+    >>>
+    >>> reg1 = CVStackableTransformer(GaussianNB(priors=None),
+    ...                               method='predict')
+    >>> reg2 = CVStackableTransformer(SVR(), method='predict')
+    >>>
+    >>> StackingLayer([("gaussiannb", reg1),
+    ...                ("svr", reg2)])
+    ...                        # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+        StackingLayer(n_jobs=1,
+        transformer_list=[('gaussiannb',
+                           CVStackableTransformer(cv=3,
+                                                  estimator=GaussianNB(...),
+                                                  method='predict',
+                                                  n_cv_jobs=1)),
+                          ('svr',
+                           CVStackableTransformer(cv=3,
+                                                  estimator=SVR(...),
+                                                  method='predict',
+                                                  n_cv_jobs=1))],
+        transformer_weights=None)
     """
     def _validate_one_transformer(self, t):
         if not hasattr(t, "blend"):
