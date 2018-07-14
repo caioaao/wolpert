@@ -96,7 +96,27 @@ class StackingLayer(FeatureUnion):
     def _fit_blend_one(self):
         return _fit_blend_one
 
-    def blend(self, X, y, weight=None, **fit_params):
+    def blend(self, X, y, **fit_params):
+        """Transform dataset by calling ``blend`` on each transformers and
+        concatenating the results.
+
+        Parameters
+        ----------
+        X : array-like or sparse matrix, shape=(n_samples, n_features)
+            Input data used to build forests. Use ``dtype=np.float32`` for
+            maximum efficiency.
+
+        y : array-like, shape = [n_samples]
+            Target values.
+
+        **fit_params : parameters to be passed to the base estimator.
+
+        Returns
+        -------
+        X_transformed : sparse matrix, shape=(n_samples, n_out)
+            Transformed dataset.
+
+        """
         self._validate_transformers()
         Xs = Parallel(n_jobs=self.n_jobs)(
             delayed(self._blend_one)(trans, X, y, weight, **fit_params)
@@ -214,8 +234,6 @@ def make_stack_layer(*estimators, **kwargs):
                                                   method='predict',
                                                   n_cv_jobs=1))],
         transformer_weights=None)
-
-
 
     Returns
     -------
