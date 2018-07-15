@@ -93,13 +93,13 @@ STACK_LAYER_CV_PARAMS = {'cv': [3, StratifiedKFold()],
                          'method': ['auto', 'predict', 'predict_proba'],
                          'n_jobs': [1, 2],
                          'n_cv_jobs': [1, 2],
-                         'blending_type': ['cv']}
+                         'blending_wrapper': ['cv']}
 
 # TODO refactor to test Restack (but it should be working)
 STACK_LAYER_HOLDOUT_PARAMS = {'restack': [False],
                               'method': ['auto', 'predict', 'predict_proba'],
                               'n_jobs': [1, 2],
-                              'blending_type': ['holdout'],
+                              'blending_wrapper': ['holdout'],
                               'holdout_size': [.5],
                               'random_state': [435],
                               'fit_to_all_data': [True, False]}

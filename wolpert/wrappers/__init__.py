@@ -4,9 +4,9 @@ from .holdout import HoldoutStackableTransformer
 __all__ = ["CVStackableTransformer", "HoldoutStackableTransformer"]
 
 
-def _choose_wrapper(blending_type):
+def _choose_wrapper(blending_wrapper):
     """Placeholder function to choose between transformers"""
-    if blending_type == "cv":
+    if blending_wrapper == "cv":
         return CVStackableTransformer
-    elif blending_type == "holdout":
+    elif blending_wrapper == "holdout":
         return HoldoutStackableTransformer

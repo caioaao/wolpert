@@ -240,9 +240,9 @@ def _identity_transformer():
     return FunctionTransformer(_identity, accept_sparse=True)
 
 
-def _wrap_estimators(named_estimators, method='auto', blending_type="cv",
+def _wrap_estimators(named_estimators, method='auto', blending_wrapper="cv",
                      **blending_opts):
-    wrapper = _choose_wrapper(blending_type)
+    wrapper = _choose_wrapper(blending_wrapper)
     return [(name, wrapper(
         est, method=method, **blending_opts))
             for name, est in named_estimators]
@@ -268,7 +268,7 @@ def make_stack_layer(*estimators, **kwargs):
         Number of jobs to be passed to ``StackingLayer``. Each job will be
         responsible for blending one of the estimators.
 
-    blending_type: string, optional (default='cv')
+    blending_wrapper: string, optional (default='cv')
         The strategy to be used when blending. Possible values are 'cv' and
         'holdout'.
 
@@ -301,17 +301,17 @@ def make_stack_layer(*estimators, **kwargs):
     method = kwargs.pop('method', 'auto')
     restack = kwargs.pop('restack', False)
     n_jobs = kwargs.pop('n_jobs', 1)
-    blending_type = kwargs.pop('blending_type', "cv")
+    blending_wrapper = kwargs.pop('blending_wrapper', "cv")
     blending_opts = kwargs
 
     named_estimators = _name_estimators(estimators)
 
     transformer_list = _wrap_estimators(
-        named_estimators, method=method, blending_type=blending_type,
+        named_estimators, method=method, blending_wrapper=blending_wrapper,
         **blending_opts)
 
     if restack:
-        wrapper = _choose_wrapper(blending_type)
+        wrapper = _choose_wrapper(blending_wrapper)
         transformer_list.append(
             ('identity-transformer', wrapper(_identity_transformer(),
                                              method='transform',
