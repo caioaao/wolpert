@@ -240,11 +240,9 @@ def _identity_transformer():
     return FunctionTransformer(_identity, accept_sparse=True)
 
 
-def _wrap_estimators(named_estimators, method='auto', blending_wrapper="cv",
-                     **blending_opts):
+def _wrap_estimators(named_estimators, blending_wrapper="cv"):
     wrapper = _choose_wrapper(blending_wrapper)
-    return [(name, wrapper(
-        est, method=method, **blending_opts))
+    return [(name, wrapper.wrap_estimator(est))
             for name, est in named_estimators]
 
 
@@ -255,12 +253,6 @@ def make_stack_layer(*estimators, **kwargs):
     ----------
     *estimators : list of estimators to be wrapped and used in a layer
 
-    method : string, optional (default='auto')
-        This method will be called on the estimator to produce the output of
-        transform. If the method is ``auto``, will try to invoke, for each
-        estimator, ``predict_proba``, ``decision_function`` or ``predict``
-        in that order.
-
     restack: bool, optional (default=False)
         Wether to repeat the layer input in the output.
 
@@ -268,53 +260,47 @@ def make_stack_layer(*estimators, **kwargs):
         Number of jobs to be passed to ``StackingLayer``. Each job will be
         responsible for blending one of the estimators.
 
-    blending_wrapper: string, optional (default='cv')
-        The strategy to be used when blending. Possible values are 'cv' and
-        'holdout'.
-
-    **blending_opts: arguments to be passed to the blending wrapper
+    blending_wrapper: string or Wrapper object, optional (default='cv')
+        The strategy to be used when blending. Possible string values are 'cv'
+        and 'holdout'. If a wrapper object is passed, it will be used instead.
 
     Examples
     --------
     >>> from sklearn.naive_bayes import GaussianNB
     >>> from sklearn.svm import SVR
-    >>> make_stack_layer(GaussianNB(priors=None), SVR(),
-    ...                  method='predict')
+    >>> make_stack_layer(GaussianNB(priors=None), SVR())
     ...                        # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
         StackingLayer(n_jobs=1,
         transformer_list=[('gaussiannb',
                            CVStackableTransformer(cv=3,
                                                   estimator=GaussianNB(...),
-                                                  method='predict',
+                                                  method='auto',
                                                   n_cv_jobs=1)),
                           ('svr',
                            CVStackableTransformer(cv=3,
                                                   estimator=SVR(...),
-                                                  method='predict',
+                                                  method='auto',
                                                   n_cv_jobs=1))],
         transformer_weights=None)
 
     Returns
     -------
     l : StackingLayer
+
     """
-    method = kwargs.pop('method', 'auto')
     restack = kwargs.pop('restack', False)
     n_jobs = kwargs.pop('n_jobs', 1)
     blending_wrapper = kwargs.pop('blending_wrapper', "cv")
-    blending_opts = kwargs
 
     named_estimators = _name_estimators(estimators)
 
     transformer_list = _wrap_estimators(
-        named_estimators, method=method, blending_wrapper=blending_wrapper,
-        **blending_opts)
+        named_estimators, blending_wrapper=blending_wrapper)
 
     if restack:
         wrapper = _choose_wrapper(blending_wrapper)
         transformer_list.append(
-            ('identity-transformer', wrapper(_identity_transformer(),
-                                             method='transform',
-                                             **blending_opts)))
+            ('identity-transformer', wrapper.wrap_estimator(
+                _identity_transformer(), method='transform')))
 
     return StackingLayer(transformer_list, n_jobs=n_jobs)

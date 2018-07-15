@@ -7,10 +7,18 @@ __all__ = ["CVStackableTransformer", "CVWrapper",
 
 
 def _choose_wrapper(blending_wrapper):
-    """Choose between wrappers"""
-    if issubclass(blending_wrapper, BaseWrapper):
+    """Choose between wrappers
+
+    Parameters
+    ----------
+    blending_wrapper: string or Wrapper object, optional (default='cv')
+        The strategy to be used when blending. Possible string values are 'cv'
+        and 'holdout'. If a wrapper object is passed, it will be used instead.
+    """
+    if isinstance(blending_wrapper, str):
+        if blending_wrapper == "cv":
+            return CVWrapper()
+        elif blending_wrapper == "holdout":
+            return HoldoutWrapper()
+    else:
         return blending_wrapper
-    elif blending_wrapper == "cv":
-        return CVWrapper()
-    elif blending_wrapper == "holdout":
-        return HoldoutWrapper()

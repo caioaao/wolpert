@@ -138,18 +138,19 @@ class BaseWrapper(object):
 
     @abc.abstractmethod
     def wrap_estimator(self, estimator, method=None, **kwargs):
-        """Wraps an estimator and returns a transformer that is suitable for stacking.
+        """Wraps an estimator and returns a stackable transformer.
 
         Parameters
         ----------
         estimator : predictor
             The estimator to be blended.
 
-        method : string, optional (default='auto')
-            This method will be called on the estimator to produce the output
-            of transform. If the method is ``auto``, will try to invoke, for
-            each estimator, ``predict_proba``, ``decision_function`` or
-            ``predict`` in that order.
+        method : string or None, optional (default=None)
+            If not ``None``, his method will be called on the estimator instead
+            of ``default_method`` to produce the output of transform. If the
+            method is ``auto``, will try to invoke, for each estimator,
+            ``predict_proba``, ``decision_function`` or ``predict`` in that
+            order.
 
         Returns
         -------

@@ -7,14 +7,26 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.base import clone, BaseEstimator
 
 from wolpert.pipeline import StackingLayer, StackingPipeline, make_stack_layer
-from wolpert.wrappers import CVStackableTransformer
+from wolpert.wrappers import CVStackableTransformer, CVWrapper, HoldoutWrapper
 
 iris = datasets.load_iris()
 X, y = iris.data[:, 1:3], iris.target
 
 RANDOM_SEED = 8939
 
-STACK_LAYER_PARAMS = {'n_jobs': [1, 2]}
+STACK_LAYER_PARAMS = {'restack': [False, True],
+                      'n_jobs': [1, 2]}
+
+STACK_LAYER_CV_PARAMS = {
+    'default_method': ['auto', 'predict', 'predict_proba'],
+    'cv': [3, StratifiedKFold()],
+    'n_cv_jobs': [1, 2]}
+
+STACK_LAYER_HOLDOUT_PARAMS = {
+    'default_method': ['auto', 'predict', 'predict_proba'],
+    'holdout_size': [.5],
+    'random_state': [435],
+    'fit_to_all_data': [True, False]}
 
 
 def _check_restack(X, Xorig):
@@ -70,8 +82,13 @@ def test_layer_regression():
             LinearSVR(random_state=RANDOM_SEED)))]
 
     for params in ParameterGrid(STACK_LAYER_PARAMS):
+        if not params["restack"]:
+            continue
+        params.pop("restack")
+
         # assert constructor
         reg_layer = StackingLayer(base_regs, **params)
+
         _check_layer(reg_layer, False)
 
 

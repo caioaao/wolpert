@@ -172,15 +172,17 @@ class CVWrapper(BaseWrapper):
         estimator : predictor
             The estimator to be blended.
 
-        method : string, optional (default='auto')
-            This method will be called on the estimator to produce the output
-            of transform. If the method is ``auto``, will try to invoke, for
-            each estimator, ``predict_proba``, ``decision_function`` or
-            ``predict`` in that order.
+        method : string or None, optional (default=None)
+            If not ``None``, his method will be called on the estimator instead
+            of ``default_method`` to produce the output of transform. If the
+            method is ``auto``, will try to invoke, for each estimator,
+            ``predict_proba``, ``decision_function`` or ``predict`` in that
+            order.
 
         Returns
         -------
         t : CVStackableTransformer
+
         """
         method = method or self.default_method
         return CVStackableTransformer(estimator, method=method, cv=self.cv,
