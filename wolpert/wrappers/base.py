@@ -8,6 +8,18 @@ class BaseStackableTransformer(BaseEstimator, MetaEstimatorMixin,
                                TransformerMixin):
     """Base class for wrappers. Shouldn't be used directly, but inherited by
     specialized wrappers.
+
+    Parameters
+    ----------
+    estimator : predictor
+        The estimator to be blended.
+
+    method : string, optional (default='auto')
+        This method will be called on the estimator to produce the output of
+        transform. If the method is ``auto``, will try to invoke, for each
+        estimator, ``predict_proba``, ``decision_function`` or ``predict``
+        in that order.
+
     """
 
     __metaclass__ = abc.ABCMeta
@@ -105,3 +117,45 @@ class BaseStackableTransformer(BaseEstimator, MetaEstimatorMixin,
             preds = preds.reshape(-1, 1)
 
         return preds
+
+
+class BaseWrapper(object):
+    __metaclass__ = abc.ABCMeta
+    """Factory class used to wrap estimators.
+
+    Parameters
+    ----------
+
+    default_method : string, optional (default='auto')
+        This method will be called on the estimator to produce the output of
+        transform. If the method is ``auto``, will try to invoke, for each
+        estimator, ``predict_proba``, ``decision_function`` or ``predict``
+        in that order.
+    """
+
+    def __init__(self, default_method="auto"):
+        self.default_method = default_method
+
+    @abc.abstractmethod
+    def wrap_estimator(self, estimator, method=None, **kwargs):
+        """Wraps an estimator and returns a stackable transformer.
+
+        Parameters
+        ----------
+        estimator : predictor
+            The estimator to be blended.
+
+        method : string or None, optional (default=None)
+            If not ``None``, his method will be called on the estimator instead
+            of ``default_method`` to produce the output of transform. If the
+            method is ``auto``, will try to invoke, for each estimator,
+            ``predict_proba``, ``decision_function`` or ``predict`` in that
+            order.
+
+        Returns
+        -------
+        t : Transformer that implements the interface defined by
+            ``BaseStackableTransformer``
+
+        """
+        pass

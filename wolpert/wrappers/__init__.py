@@ -1,12 +1,24 @@
-from .cross_val import CVStackableTransformer
-from .holdout import HoldoutStackableTransformer
+from .cross_val import CVStackableTransformer, CVWrapper
+from .holdout import HoldoutStackableTransformer, HoldoutWrapper
+from .base import BaseWrapper
 
-__all__ = ["CVStackableTransformer", "HoldoutStackableTransformer"]
+__all__ = ["CVStackableTransformer", "CVWrapper",
+           "HoldoutStackableTransformer", "HoldoutWrapper"]
 
 
-def _choose_wrapper(blending_type):
-    """Placeholder function to choose between transformers"""
-    if blending_type == "cv":
-        return CVStackableTransformer
-    elif blending_type == "holdout":
-        return HoldoutStackableTransformer
+def _choose_wrapper(blending_wrapper):
+    """Choose between wrappers
+
+    Parameters
+    ----------
+    blending_wrapper: string or Wrapper object, optional (default='cv')
+        The strategy to be used when blending. Possible string values are 'cv'
+        and 'holdout'. If a wrapper object is passed, it will be used instead.
+    """
+    if isinstance(blending_wrapper, str):
+        if blending_wrapper == "cv":
+            return CVWrapper()
+        elif blending_wrapper == "holdout":
+            return HoldoutWrapper()
+    else:
+        return blending_wrapper
