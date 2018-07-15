@@ -1,9 +1,17 @@
+import abc
+
 from sklearn.base import (BaseEstimator, TransformerMixin, MetaEstimatorMixin,
                           clone)
 
 
 class BaseStackableTransformer(BaseEstimator, MetaEstimatorMixin,
                                TransformerMixin):
+    """Base class for wrappers. Shouldn't be used directly, but inherited by
+    specialized wrappers.
+    """
+
+    __metaclass__ = abc.ABCMeta
+
     def __init__(self, estimator, method='auto'):
         self.estimator = estimator
         self.method = method
@@ -25,6 +33,32 @@ class BaseStackableTransformer(BaseEstimator, MetaEstimatorMixin,
     @property
     def _estimator_function(self):
         return getattr(self.estimator_, self._estimator_function_name)
+
+    @abc.abstractmethod
+    def blend(self, X, y, **fit_params):
+        """Transform dataset using cross validation.
+
+        Parameters
+        ----------
+        X : array-like or sparse matrix, shape=(n_samples, n_features)
+            Input data used to build forests. Use ``dtype=np.float32`` for
+            maximum efficiency.
+
+        y : array-like, shape = [n_samples]
+            Target values.
+
+        **fit_params : parameters to be passed to the base estimator.
+
+        Returns
+        -------
+        X_transformed : sparse matrix, shape=(n_samples, n_out)
+            Transformed dataset.
+        """
+        pass
+
+    @abc.abstractmethod
+    def fit_blend(self, X, y, **fit_params):
+        pass
 
     def fit(self, X, y=None, **fit_params):
         """Fit the estimator to the whole training set.
