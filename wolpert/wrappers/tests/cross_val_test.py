@@ -9,7 +9,7 @@ from sklearn.linear_model import RidgeClassifier, LinearRegression
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.ensemble import RandomForestClassifier
 
-from wolpert.wrappers import CVStackableTransformer
+from wolpert.wrappers import CVStackableTransformer, CVWrapper
 
 from .utils import check_estimator
 
@@ -68,3 +68,35 @@ def test_classification():
             blended_clf = CVStackableTransformer(clf, **params)
             for fit_params in META_ESTIMATOR_FIT_PARAMS:
                 _check_estimator(blended_clf, **fit_params)
+
+
+WRAPPER_PARAMS = {"default_method": ["auto", "predict_proba"],
+                  "cv": [1, 2],
+                  "n_cv_jobs": [1, 2, 3]}
+
+
+def test_wrapper():
+    dummy_estimator = "dummy"
+
+    for params in ParameterGrid(WRAPPER_PARAMS):
+        wrapper = CVWrapper(**params)
+
+        default_method = params.pop("default_method")
+
+        for method in [None, "auto", "predict_proba"]:
+            wrapped_est = wrapper.wrap_estimator(
+                dummy_estimator, method=method)
+
+            direct_wrapped_est = CVStackableTransformer(
+                dummy_estimator, method=method, **params)
+
+            # checks that method is chosen appropriately
+            if method is None:
+                assert_equal(wrapped_est.method, default_method)
+            else:
+                assert_equal(wrapped_est.method, method)
+
+            # check that both transformers are the same
+            for k in ["estimator", "cv", "n_cv_jobs"]:
+                assert_equal(getattr(wrapped_est, k),
+                             getattr(direct_wrapped_est, k))

@@ -8,7 +8,7 @@ from sklearn.linear_model import RidgeClassifier, LinearRegression
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.ensemble import RandomForestClassifier
 
-from wolpert.wrappers import HoldoutStackableTransformer
+from wolpert.wrappers import HoldoutStackableTransformer, HoldoutWrapper
 
 from .utils import check_estimator
 
@@ -66,3 +66,37 @@ def test_classification():
         for params in ParameterGrid(meta_params):
             blended_clf = HoldoutStackableTransformer(clf, **params)
             _check_estimator(blended_clf)
+
+
+WRAPPER_PARAMS = {"default_method": ["auto", "predict_proba"],
+                  "holdout_size": [.1, .2],
+                  "random_state": [10, 20, 30],
+                  "fit_to_all_data": [True, False]}
+
+
+def test_wrapper():
+    dummy_estimator = "dummy"
+
+    for params in ParameterGrid(WRAPPER_PARAMS):
+        wrapper = HoldoutWrapper(**params)
+
+        default_method = params.pop("default_method")
+
+        for method in [None, "auto", "predict_proba"]:
+            wrapped_est = wrapper.wrap_estimator(
+                dummy_estimator, method=method)
+
+            direct_wrapped_est = HoldoutStackableTransformer(
+                dummy_estimator, method=method, **params)
+
+            # checks that method is chosen appropriately
+            if method is None:
+                assert_equal(wrapped_est.method, default_method)
+            else:
+                assert_equal(wrapped_est.method, method)
+
+            # check that both transformers are the same
+            for k in ["estimator", "holdout_size", "random_state",
+                      "fit_to_all_data"]:
+                assert_equal(getattr(wrapped_est, k),
+                             getattr(direct_wrapped_est, k))
