@@ -6,7 +6,7 @@
 from sklearn.base import clone
 from sklearn.model_selection import train_test_split
 
-from .base import BaseStackableTransformer
+from .base import BaseStackableTransformer, BaseWrapper
 
 
 class HoldoutStackableTransformer(BaseStackableTransformer):
@@ -172,3 +172,67 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
         self.estimator_, preds = self._fit_blend(
             X, y, self.fit_to_all_data, **fit_params)
         return preds
+
+
+class HoldoutWrapper(BaseWrapper):
+    """Helper class to wrap estimators with ``CVStackableTransformer``
+
+    Parameters
+    ----------
+
+    default_method : string, optional (default='auto')
+        This method will be called on the estimator to produce the output of
+        transform. If the method is ``auto``, will try to invoke, for each
+        estimator, ``predict_proba``, ``decision_function`` or ``predict``
+        in that order.
+
+    holdout_size : float, optional (default=.1)
+        Fraction of the dataset to be ignored for training. The holdout_size
+        will be the size of the blended dataset.
+
+    random_state : int, RandomState instance or None, optional (default=None)
+        If int, ``random_state`` is the seed used by the random number
+        generator; If ``RandomState`` instance, ``random_state`` is the random
+        number generator; If ``None``, the random number generator is the
+        ``RandomState`` instance used by ``np.random``.
+
+    fit_to_all_data : bool, optional (default=False)
+        When true, will fit the final estimator to the whole dataset. If not,
+        fits only to the non-holdout set. This only affects the ``fit`` and
+        ``fit_blend`` steps.
+
+    Examples
+    --------
+    """
+
+    def __init__(self, default_method='auto', holdout_size=.1,
+                 random_state=None, fit_to_all_data=False):
+        super(CVWrapper, self).__init__(default_method)
+        self.holdout_size = holdout_size
+        self.random_state = random_state
+        self.fit_to_all_data = fit_to_all_data
+
+    def wrap_estimator(self, estimator, method=None, **kwargs):
+        """Wraps an estimator and returns a transformer that is suitable for stacking.
+
+        Parameters
+        ----------
+        estimator : predictor
+            The estimator to be blended.
+
+        method : string, optional (default='auto')
+            This method will be called on the estimator to produce the output
+            of transform. If the method is ``auto``, will try to invoke, for
+            each estimator, ``predict_proba``, ``decision_function`` or
+            ``predict`` in that order.
+
+        Returns
+        -------
+        t : CVStackableTransformer
+        """
+        method = method or self.default_method
+
+        return HoldoutStackableTransformer(
+            estimator, method=method, holdout_size=self.holdout_size,
+            random_state=self.random_state,
+            fit_to_all_data=self.fit_to_all_data)

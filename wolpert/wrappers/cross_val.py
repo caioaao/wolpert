@@ -3,11 +3,10 @@
 # Author: Caio Oliveira <caioaao@gmail.com>
 # License: BSD 3 clause
 
-from sklearn.base import (BaseEstimator, TransformerMixin, MetaEstimatorMixin,
-                          clone)
+from sklearn.base import clone
 from sklearn.model_selection import cross_val_predict
 
-from .base import BaseStackableTransformer
+from .base import BaseStackableTransformer, BaseWrapper
 
 
 class CVStackableTransformer(BaseStackableTransformer):
@@ -121,3 +120,68 @@ class CVStackableTransformer(BaseStackableTransformer):
         blend_results = self.blend(X, y, **fit_params)
         self.fit(X, y, **fit_params)
         return blend_results
+
+
+class CVWrapper(BaseWrapper):
+    """Helper class to wrap estimators with ``CVStackableTransformer``
+
+    Parameters
+    ----------
+
+    default_method : string, optional (default='auto')
+        This method will be called on the estimator to produce the output of
+        transform. If the method is ``auto``, will try to invoke, for each
+        estimator, ``predict_proba``, ``decision_function`` or ``predict``
+        in that order.
+
+    cv : int, cross-validation generator or an iterable, optional (default=3)
+        Determines the cross-validation splitting strategy to be used for
+        generating features to train the next layer on the stacked ensemble or,
+        more specifically, during ``blend``.
+
+        Possible inputs for cv are:
+
+        - None, to use the default 3-fold cross-validation,
+        - integer, to specify the number of folds.
+        - An object to be used as a cross-validation generator.
+        - An iterable yielding train/test splits.
+
+        For integer/None inputs, if the estimator is a classifier and ``y`` is
+        either binary or multiclass,
+        ``sklearn.model_selection.StratifiedKFold`` is used. In all other
+        cases, ``sklearn.model_selection.KFold`` is used.
+
+    n_cv_jobs : int, optional (default=1)
+        Number of jobs to be passed to ``cross_val_predict`` during
+        ``blend``.
+
+    Examples
+    --------
+    """
+
+    def __init__(self, default_method='auto', cv=3, n_cv_jobs=1):
+        super(CVWrapper, self).__init__(default_method)
+        self.cv = cv
+        self.n_cv_jobs = n_cv_jobs
+
+    def wrap_estimator(self, estimator, method=None, **kwargs):
+        """Wraps an estimator and returns a transformer that is suitable for stacking.
+
+        Parameters
+        ----------
+        estimator : predictor
+            The estimator to be blended.
+
+        method : string, optional (default='auto')
+            This method will be called on the estimator to produce the output
+            of transform. If the method is ``auto``, will try to invoke, for
+            each estimator, ``predict_proba``, ``decision_function`` or
+            ``predict`` in that order.
+
+        Returns
+        -------
+        t : CVStackableTransformer
+        """
+        method = method or self.default_method
+        return CVStackableTransformer(estimator, method=method, cv=self.cv,
+                                      n_cv_jobs=self.n_cv_jobs)
