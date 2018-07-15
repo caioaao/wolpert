@@ -165,9 +165,48 @@ class StackingLayer(FeatureUnion):
 
 
 class StackingPipeline(Pipeline):
-    """The stacked model.
+    """A pipeline of ``StackingLayer``s with a final estimator.
+
+    During ``fit``, sequentially apply ``fit_blend`` to each ``StackingLayer``
+    and feeds the transformed data into the next layer. Finally fits the final
+    estimator to the last transformed data.
+
+    When generating predictions, calls ``transform`` on each layer sequentially
+    before feeding the data to the final estimator.
+
+    Parameters
+    ----------
+    steps : list of (string, estimator) tuples
+
+        List of (name, object) tuples that are chained, in the order in which
+        they are chained, with the last object an estimator. All objects
+        besides the last one must inherit from ``BaseStackableTransformer``.
+
+    memory : None, str or object with the joblib.Memory interface, optional
+        Used to cache the fitted transformers of the pipeline. By default,
+        no caching is performed. If a string is given, it is the path to
+        the caching directory. Enabling caching triggers a clone of
+        the transformers before fitting. Therefore, the transformer
+        instance given to the pipeline cannot be inspected
+        directly. Use the attribute ``named_steps`` or ``steps`` to
+        inspect estimators within the pipeline. Caching the
+        transformers is advantageous when fitting is time consuming.
 
     All steps but the last one must implement ``blend``.
+
+    Examples
+    --------
+    >>> from sklearn.naive_bayes import GaussianNB
+    >>> from sklearn.svm import SVR
+    >>> from sklearn.linear_model import LinearRegression
+    >>> layer0 = make_stack_layer(GaussianNB(priors=None), SVR(),
+    ...                           method='predict')
+    >>> final_estimator = LinearRegression()
+    >>> StackingPipeline([("l0", layer0), ("final", final_estimator)])
+    ...                        # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    StackingPipeline(memory=None,
+             steps=[('l0', StackingLayer(...)),
+                    ('final', LinearRegression(...))])
     """
     def __init__(self, steps, memory=None):
         super(StackingPipeline, self).__init__(steps, memory)
