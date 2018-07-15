@@ -100,47 +100,57 @@ def test_layer_classification():
             random_state=RANDOM_SEED, criterion='entropy')))]
 
     for params in ParameterGrid(STACK_LAYER_PARAMS):
+        if params["restack"]:
+            continue
+        params.pop("restack")
+
         # assert constructor
         clf_layer = StackingLayer(base_clfs, **params)
+
         _check_layer(clf_layer, False)
-
-
-STACK_LAYER_CV_PARAMS = {'cv': [3, StratifiedKFold()],
-                         'restack': [False, True],
-                         'method': ['auto', 'predict', 'predict_proba'],
-                         'n_jobs': [1, 2],
-                         'n_cv_jobs': [1, 2],
-                         'blending_wrapper': ['cv']}
-
-# TODO refactor to test Restack (but it should be working)
-STACK_LAYER_HOLDOUT_PARAMS = {'restack': [False],
-                              'method': ['auto', 'predict', 'predict_proba'],
-                              'n_jobs': [1, 2],
-                              'blending_wrapper': ['holdout'],
-                              'holdout_size': [.5],
-                              'random_state': [435],
-                              'fit_to_all_data': [True, False]}
 
 
 def test_layer_helper_constructor():
     base_estimators = [LinearRegression(), LinearRegression()]
 
-    for params in ParameterGrid(STACK_LAYER_CV_PARAMS):
-        if params['n_jobs'] != 1 and params['n_cv_jobs'] != 1:
-            continue  # nested parallelism is not supported
+    for layer_params in ParameterGrid(STACK_LAYER_PARAMS):
+        # test with string as wrapper
+        reg_layer = make_stack_layer(*base_estimators, blending_wrapper="cv",
+                                     **layer_params)
+        _check_layer(reg_layer, layer_params["restack"])
 
-        if params['method'] is 'predict_proba':
-            continue
+        # test with wrapper object
+        for wrapper_params in ParameterGrid(STACK_LAYER_CV_PARAMS):
+            if layer_params['n_jobs'] != 1 and wrapper_params['n_cv_jobs'] != 1:
+                continue  # nested parallelism is not supported
 
-        reg_layer = make_stack_layer(*base_estimators, **params)
-        _check_layer(reg_layer, params["restack"])
+            if wrapper_params['default_method'] is 'predict_proba':
+                continue
 
-    for params in ParameterGrid(STACK_LAYER_HOLDOUT_PARAMS):
-        if params['method'] is 'predict_proba':
-            continue
+            wrapper = CVWrapper(**wrapper_params)
+            reg_layer = make_stack_layer(
+                *base_estimators, blending_wrapper=wrapper, **layer_params)
+            _check_layer(reg_layer, layer_params["restack"])
 
-        reg_layer = make_stack_layer(*base_estimators, **params)
-        _check_layer(reg_layer, params["restack"])
+        # test with string as wrapper
+        reg_layer = make_stack_layer(
+            *base_estimators, blending_wrapper="holdout", **layer_params)
+
+        # TODO check restack on holdout. it's working, but _check_layer must be
+        # refactored to handle it
+        _check_layer(reg_layer, False)
+
+        # test with wrapper object
+        for wrapper_params in ParameterGrid(STACK_LAYER_HOLDOUT_PARAMS):
+            if wrapper_params['default_method'] is 'predict_proba':
+                continue
+
+            wrapper = HoldoutWrapper(**wrapper_params)
+            reg_layer = make_stack_layer(
+                *base_estimators, blending_wrapper=wrapper, **layer_params)
+            # TODO check restack on holdout. it's working, but _check_layer
+            # must be refactored to handle it
+            _check_layer(reg_layer, False)
 
 
 class IdentityEstimator(BaseEstimator):
