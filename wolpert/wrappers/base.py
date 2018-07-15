@@ -5,10 +5,13 @@ from sklearn.base import (BaseEstimator, TransformerMixin, MetaEstimatorMixin,
 
 
 class BaseStackableTransformer(BaseEstimator, MetaEstimatorMixin,
-                               TransformerMixin, metaclass=abc.ABCMeta):
+                               TransformerMixin):
     """Base class for wrappers. Shouldn't be used directly, but inherited by
     specialized wrappers.
     """
+
+    __metaclass__ = abc.ABCMeta
+
     def __init__(self, estimator, method='auto'):
         self.estimator = estimator
         self.method = method
