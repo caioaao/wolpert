@@ -97,6 +97,6 @@ workflows:
             - build-and-test-py2
           filters:
             tags:
-              only: /[0-9]+(\.[0-9]+)*(\.(dev|a|b)[0-9]*)?*/
+              only: /[0-9]+(\.[0-9]+)*(\.(dev|a|b)[0-9]*)?/
             branches:
               ignore: /.*/
