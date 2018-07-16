@@ -21,10 +21,13 @@ class VerifyVersionCommand(install):
                    .format(tag, VERSION)
             sys.exit(info)
 
+with open('README.rst') as f:
+    LONG_DESCRIPTION = f.read()
 
 setup(name="wolpert",
       version=VERSION,
       description="Stacked generalization framework",
+      long_description=LONG_DESCRIPTION,
       url="https://github.com/caioaao/wolpert",
       author="Caio Oliveira",
       license="new BSD",
