@@ -1,6 +1,5 @@
 from .cross_val import CVStackableTransformer, CVWrapper
 from .holdout import HoldoutStackableTransformer, HoldoutWrapper
-from .base import BaseWrapper
 
 __all__ = ["CVStackableTransformer", "CVWrapper",
            "HoldoutStackableTransformer", "HoldoutWrapper"]
