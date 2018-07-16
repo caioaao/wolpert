@@ -26,15 +26,13 @@ First we need the layers of our model. The simplest way is using the helper func
      from sklearn.ensemble import RandomForestClassifier
      from sklearn.svm import SVC
      from sklearn.neighbors import KNNClassifer
+     from sklearn.linear_model import LogisticRegression
      from wolpert.pipeline import make_stack_layer, StackingPipeline
-
+     
      layer0 = make_stack_layer(SVC(), KNNClassifier(),
                                RandomForestClassifier(),
                                blending_wrapper='holdout')
-
-
-     from sklearn.linear_model import LogisticRegression
-
+                               
      clf = StackingPipeline([('l0', layer0),
                              ('l1', LogisticRegression())])
 
@@ -50,7 +48,7 @@ This is just the basic example, but there are several ways of building a stacked
     :scale: 100%
     :target: https://circleci.com/gh/caioaao/wolpert
 
-.. |docs| image:: https://readthedocs.org/projects/wolpert/badge/?version=latest
+.. |docs| image:: https://readthedocs.org/projects/wolpert/badge/?verion=latest
     :alt: Documentation status
     :scale: 100%
     :target: https://wolpert.readthedocs.io/en/latest/?badge=latest
