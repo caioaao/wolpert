@@ -6,7 +6,7 @@
 
 __Warning:__ this project is still in alpha.
 
-
+Make sure to checkout the full [documentation](https://wolpert.readthedocs.io/en/stable).
 
 ## Install
 
