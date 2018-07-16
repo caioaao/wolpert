@@ -50,10 +50,13 @@ And that's it! And this also inherits a scikit learn class: the `Pipeline <http:
     clf.fit(Xtrain, ytrain)
     ypreds = clf.predict_proba(Xtest)
 
+This is just the basic example, but there are several ways of building a stacked ensemble with this framework. Make sure to check the :ref:`User Guide <user_guide>` to know more.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   user_guide
    api_docs
      
 Indices and tables
