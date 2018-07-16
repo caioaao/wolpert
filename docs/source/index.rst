@@ -1,17 +1,5 @@
-.. wolpert documentation master file, created by
-   sphinx-quickstart on Sun Jul 15 20:07:20 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to wolpert's documentation!
-===================================
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   api_docs.rst
-
+Wolpert, a stacked generalization framework
+===========================================
 
 Wolpert is a `scikit-learn <http://scikit-learn.org>`_ compatible framework for easily building stacked ensembles. It supports:
 
@@ -32,16 +20,16 @@ Build a simple model
 --------------------
 
 First we need the layers of our model. The simplest way is using the helper function
-:func:`wolpert.pipeline.make_stack_layer`:
+:func:`wolpert.pipeline.make_stack_layer`::
 
-     >>> from sklearn.ensemble import RandomForestClassifier
-     >>> from sklearn.svm import SVC
-     >>> from sklearn.neighbors import KNNClassifer
-     >>> from wolpert.pipeline import make_stack_layer
-     >>> 
-     >>> layer0 = make_stack_layer(SVC(), KNNClassifier(),
-     ...                           RandomForestClassifier(),
-     ...                           blending_wrapper='holdout')
+     from sklearn.ensemble import RandomForestClassifier
+     from sklearn.svm import SVC
+     from sklearn.neighbors import KNNClassifer
+     from wolpert.pipeline import make_stack_layer
+     
+     layer0 = make_stack_layer(SVC(), KNNClassifier(),
+                               RandomForestClassifier(),
+                               blending_wrapper='holdout')
 
 This function will wrap each estimator on
 :class:`wolpert.wrappers.HoldoutStackableTransformer` and join them with
@@ -49,18 +37,24 @@ This function will wrap each estimator on
 learn's `FeatureUnion <http://scikit-learn.org/stable/modules/generated/sklearn.pipeline.FeatureUnion.html>`_,
 so all the methods are inherited here. Now, for finishing our model, we must add
 a final estimator on top of that layer. We do this by using
-:class:`wolpert.pipeline.StackingPipeline`:
+:class:`wolpert.pipeline.StackingPipeline`::
 
-     >>> from wolpert.pipeline import StackingPipeline
-     >>> from sklearn.linear_model import LogisticRegression
-     >>>
-     >>> clf = StackingPipeline([('l0', layer0),
-     ...                         ('l1', LogisticRegression())])
+     from wolpert.pipeline import StackingPipeline
+     from sklearn.linear_model import LogisticRegression
+     
+     clf = StackingPipeline([('l0', layer0),
+                             ('l1', LogisticRegression())])
 
-And that's it! And this also inherits a scikit learn class: the `Pipeline <http://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html>`_, so it works just the same:
+And that's it! And this also inherits a scikit learn class: the `Pipeline <http://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html>`_, so it works just the same::
 
-    >>> clf.fit(Xtrain, ytrain)
-    >>> ypreds = clf.predict_proba(Xtest)
+    clf.fit(Xtrain, ytrain)
+    ypreds = clf.predict_proba(Xtest)
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   api_docs
      
 Indices and tables
 ==================

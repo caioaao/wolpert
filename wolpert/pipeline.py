@@ -177,7 +177,6 @@ class StackingPipeline(Pipeline):
     Parameters
     ----------
     steps : list of (string, estimator) tuples
-
         List of (name, object) tuples that are chained, in the order in which
         they are chained, with the last object an estimator. All objects
         besides the last one must inherit from ``BaseStackableTransformer``.
@@ -191,8 +190,6 @@ class StackingPipeline(Pipeline):
         directly. Use the attribute ``named_steps`` or ``steps`` to
         inspect estimators within the pipeline. Caching the
         transformers is advantageous when fitting is time consuming.
-
-    All steps but the last one must implement ``blend``.
 
     Examples
     --------
@@ -251,7 +248,8 @@ def make_stack_layer(*estimators, **kwargs):
 
     Parameters
     ----------
-    *estimators : list of estimators to be wrapped and used in a layer
+    *estimators : list
+        List of estimators to be wrapped and used in a layer
 
     restack: bool, optional (default=False)
         Wether to repeat the layer input in the output.
@@ -266,6 +264,7 @@ def make_stack_layer(*estimators, **kwargs):
 
     Examples
     --------
+
     >>> from sklearn.naive_bayes import GaussianNB
     >>> from sklearn.svm import SVR
     >>> make_stack_layer(GaussianNB(priors=None), SVR())
@@ -285,6 +284,7 @@ def make_stack_layer(*estimators, **kwargs):
 
     Returns
     -------
+
     l : StackingLayer
 
     """

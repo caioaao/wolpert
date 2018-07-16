@@ -15,15 +15,11 @@ wolpert.pipeline module
 -----------------------
 
 .. automodule:: wolpert.pipeline
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :inherited-members:
 
 
 Module contents
 ---------------
 
 .. automodule:: wolpert
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :inherited-members:

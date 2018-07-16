@@ -20,7 +20,7 @@ clean:
 	-rm -rf "${BUILDDIR}/html"
 
 apidoc:
-	sphinx-apidoc -o "${SOURCEDIR}/generated/" "${MODULEDIR}" '../wolpert/sklearn_pipeline.py' '../**/tests/*'
+	SPHINX_APIDOC_OPTIONS=inherited-members sphinx-apidoc -o "${SOURCEDIR}/generated/" "${MODULEDIR}" '../wolpert/sklearn_pipeline.py' '../**/tests/*'
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
