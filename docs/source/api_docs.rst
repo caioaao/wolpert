@@ -9,26 +9,26 @@ API documentation |version|
 Classes
 ~~~~~~~
 
-.. currentmodule:: wolpert
+.. currentmodule:: wolpert.pipeline
 
 .. autosummary::
    :toctree: generated/
    :template: class.rst
 
-   pipeline.StackingLayer
-   pipeline.StackingPipeline
+   StackingLayer
+   StackingPipeline
 
 
 Functions
 ~~~~~~~~~
 
-.. currentmodule:: wolpert
+.. currentmodule:: wolpert.pipeline
 
 .. autosummary::
    :toctree: generated/
    :template: function.rst
 
-   pipeline.make_stack_layer
+   make_stack_layer
 
 
 :mod:`wolpert.wrappers`: Wrappers
@@ -37,14 +37,13 @@ Functions
 Classes
 ~~~~~~~
 
+.. currentmodule:: wolpert.wrappers
+
 .. autosummary::
    :toctree: generated/
    :template: class.rst
 
-   wrappers.HoldoutWrapper
-   wrappers.CVWrapper
-   wrappers.HoldoutStackableTransformer
-   wrappers.CVStackableTransformer
-
-Functions
-~~~~~~~~~
+   HoldoutWrapper
+   CVWrapper
+   HoldoutStackableTransformer
+   CVStackableTransformer

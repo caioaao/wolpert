@@ -11,12 +11,9 @@ Subpackages
 Submodules
 ----------
 
-wolpert.pipeline module
------------------------
+.. toctree::
 
-.. automodule:: wolpert.pipeline
-    :inherited-members:
-
+   wolpert.pipeline
 
 Module contents
 ---------------

@@ -4,24 +4,11 @@ wolpert.wrappers package
 Submodules
 ----------
 
-wolpert.wrappers.base module
-----------------------------
+.. toctree::
 
-.. automodule:: wolpert.wrappers.base
-    :inherited-members:
-
-wolpert.wrappers.cross\_val module
-----------------------------------
-
-.. automodule:: wolpert.wrappers.cross_val
-    :inherited-members:
-
-wolpert.wrappers.holdout module
--------------------------------
-
-.. automodule:: wolpert.wrappers.holdout
-    :inherited-members:
-
+   wolpert.wrappers.base
+   wolpert.wrappers.cross_val
+   wolpert.wrappers.holdout
 
 Module contents
 ---------------
