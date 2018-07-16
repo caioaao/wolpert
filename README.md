@@ -1,10 +1,12 @@
-[![CircleCI](https://circleci.com/gh/caioaao/wolpert.svg?style=svg)](https://circleci.com/gh/caioaao/wolpert) [![PyPI version](https://badge.fury.io/py/wolpert.svg)](https://badge.fury.io/py/wolpert)
+[![CircleCI](https://circleci.com/gh/caioaao/wolpert.png?style=shield)](https://circleci.com/gh/caioaao/wolpert)
+[![Documentation status](https://readthedocs.org/projects/wolpert/badge/?version=latest)](https://wolpert.readthedocs.io/en/latest/?badge=latest)
+[![PyPI version](https://badge.fury.io/py/wolpert.svg)](https://badge.fury.io/py/wolpert)
 
 # Wolpert, a stacked generalization framework
 
 __Warning:__ this project is still in alpha.
 
-Documentation is still missing, so for now check the docstrings and the [examples page](/examples).
+
 
 ## Install
 
