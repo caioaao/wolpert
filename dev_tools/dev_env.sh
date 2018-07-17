@@ -55,7 +55,7 @@ if [[ "$COVERAGE" == "true" ]]; then
 fi
 
 if [[ "$TEST_DOCSTRINGS" == "true" ]]; then
-    pip install sphinx sphinx-autobuild numpydoc sphinx_rtd_theme  # numpydoc requires sphinx
+    pip install sphinx sphinx-autobuild numpydoc sphinx_rtd_theme sphinx_paramlinks  # numpydoc requires sphinx
 fi
 
 if [[ "$RUN_FLAKE8" == "true" ]]; then

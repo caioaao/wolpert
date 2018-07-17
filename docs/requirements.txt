@@ -9,3 +9,4 @@ sphinx
 sphinx-autobuild
 numpydoc
 sphinx_rtd_theme
+sphinx_paramlinks==0.3.4
