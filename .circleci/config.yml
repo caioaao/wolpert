@@ -22,6 +22,27 @@ jobs:
             . venv/bin/activate
             pytest wolpert
 
+  test-docs:
+    docker:
+      - image: circleci/python:3.6.3
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ .Revision }}
+      - run:
+          command: |
+            . venv/bin/activate
+            pip install -r docs/requirements.txt
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - "venv"
+      - run:
+          command: |
+            . venv/bin/activate
+            cd docs
+            make doctest
+
   deploy:
     docker:
       - image: circleci/python:3.6.3
@@ -91,8 +112,15 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - test-docs:
+          requires:
+            - build-and-test
+          filters:
+            tags:
+              only: /.*/
       - deploy:
           requires:
+            - test-docs
             - build-and-test
             - build-and-test-py2
           filters:

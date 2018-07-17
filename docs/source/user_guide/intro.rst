@@ -1,5 +1,10 @@
+.. _user_guide__intro:
+
 Introduction to stacked generalization
 ======================================
+
+.. note::
+   If you're already familiar with stacked generalization, you can skip this part and go straight to the :ref:`usage <user_guide__usage>` chapter, where we'll discuss how to build stacked ensembles with Wolpert.
 
 From the original paper, stacked generalization is *"...a scheme for minimizing the generalization error rate of one or more generalizers. Stacked generalization works by deducing the biases of the generalizer(s) with respect to a provided learning set. This deduction proceeds by generalizing in a second space whose inputs are (for example) the guesses of the original generalizers when taught with part of the learning set and trying to guess the rest of it, and whose output is (for example) the correct guess"* [W1992]_. Basically what this means is training a set of estimators on a dataset, generating predictions off of them and training another estimator on those predictions. Here's an example:
 

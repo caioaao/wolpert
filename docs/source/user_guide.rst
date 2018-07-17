@@ -20,9 +20,8 @@ generalization and as a manual for using the framework.
    :caption: Contents:
 
    user_guide/intro
-   user_guide/basic_usage
    user_guide/strategies
-   user_guide/restack
+   user_guide/usage
 
 .. topic:: References
 
