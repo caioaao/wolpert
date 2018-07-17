@@ -84,8 +84,9 @@ class CVStackableTransformer(BaseStackableTransformer):
 
         Returns
         -------
-        X_transformed : sparse matrix, shape=(n_samples, n_out)
-            Transformed dataset.
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
         """
         self.estimator_ = clone(self.estimator)
         preds = cross_val_predict(self.estimator_, X, y, cv=self.cv,
@@ -115,9 +116,9 @@ class CVStackableTransformer(BaseStackableTransformer):
 
         Returns
         -------
-        X_transformed : sparse matrix, shape=(n_samples, n_out)
-            Transformed dataset.
-
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
         """
         blend_results = self.blend(X, y, **fit_params)
         self.fit(X, y, **fit_params)

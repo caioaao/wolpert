@@ -119,9 +119,9 @@ class StackingLayer(FeatureUnion):
 
         Returns
         -------
-        X_transformed : sparse matrix, shape=(n_samples, n_out)
-            Transformed dataset.
-
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
         """
         self._validate_transformers()
         res = Parallel(n_jobs=self.n_jobs)(
@@ -151,9 +151,9 @@ class StackingLayer(FeatureUnion):
 
         Returns
         -------
-        X_transformed : sparse matrix, shape=(n_samples, n_out)
-            Transformed dataset.
-
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
         """
         self._validate_transformers()
 

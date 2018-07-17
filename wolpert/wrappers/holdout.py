@@ -119,9 +119,9 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
 
         Returns
         -------
-        X_transformed : sparse matrix, shape=(n_samples, n_out)
-            Transformed dataset.
-
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
         """
         _, preds, holdout_indexes = self._fit_blend(X, y, False, **fit_params)
         return preds, holdout_indexes
@@ -178,8 +178,9 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
 
         Returns
         -------
-        X_transformed : sparse matrix, shape=(n_samples, n_out)
-            Transformed dataset.
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
         """
         self.estimator_, preds, holdout_indexes = self._fit_blend(
             X, y, self.fit_to_all_data, **fit_params)
