@@ -33,6 +33,7 @@ jobs:
           command: |
             . venv/bin/activate
             pip install -r docs/requirements.txt
+            pip install .
       - save_cache:
           key: deps1-{{ .Branch }}-{{ .Revision }}
           paths:
