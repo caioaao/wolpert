@@ -1,20 +1,24 @@
 import numpy as np
 
-from .sklearn_pipeline import (Pipeline, FeatureUnion, _apply_weight,
-                               _name_estimators)
+from sklearn.externals import six
 from sklearn.externals.joblib import Parallel, delayed
 from sklearn.preprocessing import FunctionTransformer
+from sklearn.utils.metaestimators import if_delegate_has_method
+from sklearn.utils.validation import check_memory
+
+from .sklearn_pipeline import (Pipeline, FeatureUnion, _apply_weight,
+                               _name_estimators)
 from .wrappers import _choose_wrapper
 
 
 def _blend_one(transformer, X, y, weight, **fit_params):
-    res = transformer.blend(X, y, **fit_params)
-    return _apply_weight(res, weight)
+    res, indexes = transformer.blend(X, y, **fit_params)
+    return _apply_weight(res, weight), indexes
 
 
 def _fit_blend_one(transformer, X, y, weight, **fit_params):
-    Xt = transformer.fit_blend(X, y, **fit_params)
-    return _apply_weight(Xt, weight), transformer
+    Xt, indexes = transformer.fit_blend(X, y, **fit_params)
+    return _apply_weight(Xt, weight), transformer, indexes
 
 
 class StackingLayer(FeatureUnion):
@@ -96,6 +100,12 @@ class StackingLayer(FeatureUnion):
     def _fit_blend_one(self):
         return _fit_blend_one
 
+    @staticmethod
+    def _validate_xs(Xs):
+        if not Xs:
+            raise ValueError(
+                "No support for all transformers as None.")
+
     def blend(self, X, y, **fit_params):
         """Transform dataset by calling ``blend`` on each transformer and concatenating
         the results.
@@ -113,20 +123,20 @@ class StackingLayer(FeatureUnion):
 
         Returns
         -------
-        X_transformed : sparse matrix, shape=(n_samples, n_out)
-            Transformed dataset.
-
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
         """
         self._validate_transformers()
-        Xs = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._blend_one)(trans, X, y, weight, **fit_params)
-            for name, trans, weight in self._iter())
+        res = Parallel(n_jobs=self.n_jobs)(
+              delayed(self._blend_one)(trans, X, y, weight, **fit_params)
+              for name, trans, weight in self._iter())
 
-        if not Xs:
-            # All transformers are None
-            return np.zeros((X.shape[0], 0))
+        Xs, indexes = zip(*res)
 
-        return self._stack_results(Xs)
+        StackingLayer._validate_xs(Xs)
+
+        return self._stack_results(Xs), indexes[0]
 
     def fit_blend(self, X, y, weight=None, **fit_params):
         """Fit to and transform dataset by calling ``fit_blend`` on each transformer
@@ -145,9 +155,9 @@ class StackingLayer(FeatureUnion):
 
         Returns
         -------
-        X_transformed : sparse matrix, shape=(n_samples, n_out)
-            Transformed dataset.
-
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
         """
         self._validate_transformers()
 
@@ -155,13 +165,15 @@ class StackingLayer(FeatureUnion):
             delayed(self._fit_blend_one)(trans, X, y, weight, **fit_params)
             for name, trans, weight in self._iter())
 
-        if not result:
-            # All transformers are None
-            return np.zeros((X.shape[0], 0))
-        Xs, transformers = zip(*result)
+        Xs = [Xt for Xt, _, _ in result]
+        transformers = [t for _, t, _ in result]
+        indexes = [i for _, _, i in result]
+
+        StackingLayer._validate_xs(Xs)
+
         self._update_transformer_list(transformers)
 
-        return self._stack_results(Xs)
+        return self._stack_results(Xs), indexes[0]
 
 
 class StackingPipeline(Pipeline):
@@ -212,6 +224,10 @@ class StackingPipeline(Pipeline):
     def _fit_transform_one(self):
         return _fit_blend_one
 
+    @property
+    def _fit_blend_one(self):
+        return _fit_blend_one
+
     def _validate_transformers(self):
         super(StackingPipeline, self)._validate_steps()
         names, estimators = zip(*self.steps)
@@ -226,6 +242,137 @@ class StackingPipeline(Pipeline):
                 raise TypeError("All intermediate steps should be "
                                 "transformers and implement blend."
                                 " '%s' (type %s) doesn't" % (t, type(t)))
+
+    def _fit(self, X, y=None, **fit_params):
+        # shallow copy of steps - this should really be steps_
+        self.steps = list(self.steps)
+        self._validate_steps()
+        # Setup the memory
+        memory = check_memory(self.memory)
+
+        fit_blend_one_cached = memory.cache(self._fit_blend_one)
+
+        fit_params_steps = dict((name, {}) for name, step in self.steps
+                                if step is not None)
+        for pname, pval in six.iteritems(fit_params):
+            step, param = pname.split('__', 1)
+            fit_params_steps[step][param] = pval
+        Xt = X
+        indexes = np.arange(X.shape[0])
+        for step_idx, (name, transformer) in enumerate(self.steps[:-1]):
+            if transformer is None:
+                pass
+            else:
+                if hasattr(memory, 'cachedir') and memory.cachedir is None:
+                    # we do not clone when caching is disabled to preserve
+                    # backward compatibility
+                    cloned_transformer = transformer
+                else:
+                    cloned_transformer = clone(transformer)
+                # Fit or load from cache the current transfomer
+                Xt, fitted_transformer, indexes = fit_blend_one_cached(
+                    cloned_transformer, Xt, y[indexes], None,
+                    **fit_params_steps[name])
+                # Replace the transformer of the step with the fitted
+                # transformer. This is necessary when loading the transformer
+                # from the cache.
+                self.steps[step_idx] = (name, fitted_transformer)
+        if self._final_estimator is None:
+            raise ValueError(
+                "Can't build StackingPipeline without final estimator")
+        return Xt, fit_params_steps[self.steps[-1][0]], indexes
+
+    def fit(self, X, y=None, **fit_params):
+        """Fit the model
+
+        Fit all the transforms one after the other and transform the
+        data, then fit the transformed data using the final estimator.
+
+        Parameters
+        ----------
+        X : iterable
+            Training data. Must fulfill input requirements of first step of the
+            pipeline.
+
+        y : iterable, default=None
+            Training targets. Must fulfill label requirements for all steps of
+            the pipeline.
+
+        **fit_params : dict of string -> object
+            Parameters passed to the ``fit`` method of each step, where
+            each parameter name is prefixed such that parameter ``p`` for step
+            ``s`` has key ``s__p``.
+
+        Returns
+        -------
+        self : Pipeline
+            This estimator
+        """
+        Xt, fit_params, indexes = self._fit(X, y, **fit_params)
+
+        self._final_estimator.fit(Xt, y[indexes], **fit_params)
+
+        return self
+
+    def fit_transform(self, X, y=None, **fit_params):
+        """Fit the model and transform with the final estimator
+
+        Fits all the transforms one after the other and transforms the
+        data, then uses fit_transform on transformed data with the final
+        estimator.
+
+        Parameters
+        ----------
+        X : iterable
+            Training data. Must fulfill input requirements of first step of the
+            pipeline.
+
+        y : iterable, default=None
+            Training targets. Must fulfill label requirements for all steps of
+            the pipeline.
+
+        **fit_params : dict of string -> object
+            Parameters passed to the ``fit`` method of each step, where
+            each parameter name is prefixed such that parameter ``p`` for step
+            ``s`` has key ``s__p``.
+
+        Returns
+        -------
+        Xt : array-like, shape = [n_samples, n_transformed_features]
+            Transformed samples
+        """
+        self.fit(X, y, **fit_params)
+        return self.transform(X)
+
+    @if_delegate_has_method(delegate='_final_estimator')
+    def fit_predict(self, X, y=None, **fit_params):
+        """Applies fit_predict of last step in pipeline after transforms.
+
+        Applies fit_transforms of a pipeline to the data, followed by the
+        fit_predict method of the final estimator in the pipeline. Valid
+        only if the final estimator implements fit_predict.
+
+        Parameters
+        ----------
+        X : iterable
+            Training data. Must fulfill input requirements of first step of
+            the pipeline.
+
+        y : iterable, default=None
+            Training targets. Must fulfill label requirements for all steps
+            of the pipeline.
+
+        **fit_params : dict of string -> object
+            Parameters passed to the ``fit`` method of each step, where
+            each parameter name is prefixed such that parameter ``p`` for step
+            ``s`` has key ``s__p``.
+
+        Returns
+        -------
+        y_pred : array-like
+        """
+        self.fit(X, y, **fit_params)
+        return self.predict(X)
 
 
 def _identity(x):

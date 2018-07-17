@@ -3,6 +3,8 @@
 # Author: Caio Oliveira <caioaao@gmail.com>
 # License: BSD 3 clause
 
+import numpy as np
+
 from sklearn.base import clone
 from sklearn.model_selection import cross_val_predict
 
@@ -82,8 +84,9 @@ class CVStackableTransformer(BaseStackableTransformer):
 
         Returns
         -------
-        X_transformed : sparse matrix, shape=(n_samples, n_out)
-            Transformed dataset.
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
         """
         self.estimator_ = clone(self.estimator)
         preds = cross_val_predict(self.estimator_, X, y, cv=self.cv,
@@ -94,7 +97,7 @@ class CVStackableTransformer(BaseStackableTransformer):
         if preds.ndim == 1:
             preds = preds.reshape(-1, 1)
 
-        return preds
+        return preds, np.arange(y.shape[0])
 
     def fit_blend(self, X, y, **fit_params):
         """Transform dataset using cross validation and fits the estimator to the
@@ -113,9 +116,9 @@ class CVStackableTransformer(BaseStackableTransformer):
 
         Returns
         -------
-        X_transformed : sparse matrix, shape=(n_samples, n_out)
-            Transformed dataset.
-
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
         """
         blend_results = self.blend(X, y, **fit_params)
         self.fit(X, y, **fit_params)

@@ -25,13 +25,20 @@ def check_estimator(estimator, X, y, **fit_params):
         assert_array_equal(Xt2, estimator.transform(X))
 
     # checks that `blend` is availabe
-    Xt_blend = estimator.blend(X, y, **fit_params)
+    Xt_blend, indexes = estimator.blend(X, y, **fit_params)
 
     # checks that blended data is always a column vector
     assert_equal(Xt_blend.ndim, 2)
 
+    # checks that indexes have the same amount of indexes as transformed data
+    assert_equal(Xt_blend.shape[0], indexes.shape[0])
+
     # checks that `fit_blend` is available
-    Xt_fit_blend = estimator.fit_blend(X, y, **fit_params)
+    Xt_fit_blend, indexes = estimator.fit_blend(X, y, **fit_params)
 
     # checks that fit_blend and blend returns the same results
     assert_array_equal(Xt_blend, Xt_fit_blend)
+
+    # checks that indexes have the same amount of indexes as transformed data
+    assert_equal(Xt_blend.shape[0], indexes.shape[0])
+
