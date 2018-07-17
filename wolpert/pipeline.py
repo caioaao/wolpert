@@ -8,13 +8,13 @@ from .wrappers import _choose_wrapper
 
 
 def _blend_one(transformer, X, y, weight, **fit_params):
-    res = transformer.blend(X, y, **fit_params)
-    return _apply_weight(res, weight)
+    res, indexes = transformer.blend(X, y, **fit_params)
+    return _apply_weight(res, weight), indexes
 
 
 def _fit_blend_one(transformer, X, y, weight, **fit_params):
-    Xt = transformer.fit_blend(X, y, **fit_params)
-    return _apply_weight(Xt, weight), transformer
+    Xt, indexes = transformer.fit_blend(X, y, **fit_params)
+    return _apply_weight(Xt, weight), transformer, indexes
 
 
 class StackingLayer(FeatureUnion):
@@ -96,6 +96,12 @@ class StackingLayer(FeatureUnion):
     def _fit_blend_one(self):
         return _fit_blend_one
 
+    @staticmethod
+    def _validate_xs(Xs):
+        if not Xs:
+            raise ValueError(
+                "No support for all transformers as None.")
+
     def blend(self, X, y, **fit_params):
         """Transform dataset by calling ``blend`` on each transformer and concatenating
         the results.
@@ -118,15 +124,15 @@ class StackingLayer(FeatureUnion):
 
         """
         self._validate_transformers()
-        Xs = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._blend_one)(trans, X, y, weight, **fit_params)
-            for name, trans, weight in self._iter())
+        res = Parallel(n_jobs=self.n_jobs)(
+              delayed(self._blend_one)(trans, X, y, weight, **fit_params)
+              for name, trans, weight in self._iter())
 
-        if not Xs:
-            # All transformers are None
-            return np.zeros((X.shape[0], 0))
+        Xs, indexes = zip(*res)
 
-        return self._stack_results(Xs)
+        StackingLayer._validate_xs(Xs)
+
+        return self._stack_results(Xs), indexes[0]
 
     def fit_blend(self, X, y, weight=None, **fit_params):
         """Fit to and transform dataset by calling ``fit_blend`` on each transformer
@@ -155,13 +161,15 @@ class StackingLayer(FeatureUnion):
             delayed(self._fit_blend_one)(trans, X, y, weight, **fit_params)
             for name, trans, weight in self._iter())
 
-        if not result:
-            # All transformers are None
-            return np.zeros((X.shape[0], 0))
-        Xs, transformers = zip(*result)
+        Xs = [Xt for Xt, _, _ in result]
+        transformers = [t for _, t, _ in result]
+        indexes = [i for _, _, i in result]
+
+        StackingLayer._validate_xs(Xs)
+
         self._update_transformer_list(transformers)
 
-        return self._stack_results(Xs)
+        return self._stack_results(Xs), indexes[0]
 
 
 class StackingPipeline(Pipeline):

@@ -151,7 +151,7 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
         self.estimator_ = clone(self.estimator)
 
         if self.fit_to_all_data:
-            X_train, _, y_train, _ = self._split_data(X, y)
+            X_train, _, y_train, _, _ = self._split_data(X, y)
 
             self.estimator_.fit(X_train, y_train, **fit_params)
         else:
