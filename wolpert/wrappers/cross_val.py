@@ -3,6 +3,8 @@
 # Author: Caio Oliveira <caioaao@gmail.com>
 # License: BSD 3 clause
 
+import numpy as np
+
 from sklearn.base import clone
 from sklearn.model_selection import cross_val_predict
 
@@ -94,7 +96,7 @@ class CVStackableTransformer(BaseStackableTransformer):
         if preds.ndim == 1:
             preds = preds.reshape(-1, 1)
 
-        return preds
+        return preds, np.arange(y.shape[0])
 
     def fit_blend(self, X, y, **fit_params):
         """Transform dataset using cross validation and fits the estimator to the

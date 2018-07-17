@@ -27,7 +27,7 @@ def _check_estimator(estimator, **fit_params):
 
     # checks that the transformed dataset is roughly the same size as
     # holdout_size parameter
-    Xt = estimator.blend(X, y, **fit_params)
+    Xt, _ = estimator.blend(X, y, **fit_params)
     assert_almost_equal(estimator.holdout_size, Xt.shape[0] / float(X.shape[0]))
 
 

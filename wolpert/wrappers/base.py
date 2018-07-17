@@ -63,17 +63,37 @@ class BaseStackableTransformer(BaseEstimator, MetaEstimatorMixin,
 
         Returns
         -------
-        X_transformed : sparse matrix, shape=(n_samples, n_out)
-            Transformed dataset.
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
         """
         pass
 
     @abc.abstractmethod
     def fit_blend(self, X, y, **fit_params):
+        """Transform dataset using cross validation and fits the estimator.
+
+        Parameters
+        ----------
+        X : array-like or sparse matrix, shape=(n_samples, n_features)
+            Input data used to build forests. Use ``dtype=np.float32`` for
+            maximum efficiency.
+
+        y : array-like, shape = [n_samples]
+            Target values.
+
+        **fit_params : parameters to be passed to the base estimator.
+
+        Returns
+        -------
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
+        """
         pass
 
     def fit(self, X, y=None, **fit_params):
-        """Fit the estimator to the whole training set.
+        """Fit the estimator.
 
         Parameters
         ----------

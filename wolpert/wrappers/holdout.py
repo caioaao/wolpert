@@ -4,7 +4,7 @@
 # License: BSD 3 clause
 
 from sklearn.base import clone
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import ShuffleSplit
 
 from .base import BaseStackableTransformer, BaseWrapper
 
@@ -76,11 +76,15 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
         self.fit_to_all_data = fit_to_all_data
 
     def _split_data(self, X, y):
-        return train_test_split(
-            X, y, test_size=self.holdout_size, random_state=self.random_state)
+        splitter = ShuffleSplit(
+            test_size=self.holdout_size, random_state=self.random_state)
+        train_indexes, holdout_indexes = next(splitter.split(X, y))
+        return (X[train_indexes], X[holdout_indexes],
+                y[train_indexes], y[holdout_indexes],
+                holdout_indexes)
 
     def _fit_blend(self, X, y, fit_to_all_data, **fit_params):
-        X_train, X_holdout, y_train, y_holdout = self._split_data(X, y)
+        X_train, X_holdout, y_train, y_holdout, holdout_indexes = self._split_data(X, y)
 
         self.estimator_ = clone(self.estimator)
         self.estimator_.fit(X_train, y_train, **fit_params)
@@ -97,7 +101,7 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
 
         self.estimator_ = None
 
-        return fitted_estimator, preds
+        return fitted_estimator, preds, holdout_indexes
 
     def blend(self, X, y, **fit_params):
         """Transform dataset using cross validation.
@@ -119,8 +123,8 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
             Transformed dataset.
 
         """
-        _, preds = self._fit_blend(X, y, False, **fit_params)
-        return preds
+        _, preds, holdout_indexes = self._fit_blend(X, y, False, **fit_params)
+        return preds, holdout_indexes
 
     def fit(self, X, y, **fit_params):
         """Fit the estimator to the training set.
@@ -177,9 +181,9 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
         X_transformed : sparse matrix, shape=(n_samples, n_out)
             Transformed dataset.
         """
-        self.estimator_, preds = self._fit_blend(
+        self.estimator_, preds, holdout_indexes = self._fit_blend(
             X, y, self.fit_to_all_data, **fit_params)
-        return preds
+        return preds, holdout_indexes
 
 
 class HoldoutWrapper(BaseWrapper):
