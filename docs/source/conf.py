@@ -176,4 +176,8 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
+# -- Options for doctest extension -------------------------------------------
+
+# TODO: reorganize how we generate docs from source so we can have this as
+# default
 doctest_test_doctest_blocks = ''
