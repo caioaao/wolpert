@@ -26,7 +26,4 @@ generalization and as a manual for using the framework.
 
 .. topic:: References
 
- .. [W1992] D. H. Wolpert, "Stacked Generalization",
-        Neural Networks, Vol. 5, No. 5, 1992.
-
- .. [MLW2015] https://mlwave.com/kaggle-ensembling-guide/
+ .. [W1992] D. H. Wolpert, "Stacked Generalization", Neural Networks, Vol. 5, No. 5, 1992.

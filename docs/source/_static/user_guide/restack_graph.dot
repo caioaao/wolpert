@@ -1,0 +1,17 @@
+digraph G{
+        rankdir=LR;
+        "X"[shape="box",color=white];
+        
+        
+        "X"->"KNN classifier";
+        "X"->"Neural network";
+        "X"->"SVM classifier";
+        "X"->"XGB classifier";
+        "X"->"Logistic Regression";
+        
+        
+        "KNN classifier"->"Logistic Regression";
+        "Neural network"->"Logistic Regression";
+        "SVM classifier"->"Logistic Regression";
+        "XGB classifier"->"Logistic Regression";
+}
