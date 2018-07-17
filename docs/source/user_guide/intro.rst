@@ -26,7 +26,7 @@ The interesting part is the final estimator should perform at least as well as t
 Restacking
 ----------
 
-The stacked generalization framework is quite flexible, so we can play around with some architectures. One example that may help improve a stacked ensemble performance is *restacking*: we pass the training set unchanged from one layer to the other.
+The stacked generalization framework is quite flexible, so we can play around with some architectures. One example that may help improve a stacked ensemble performance is *restacking* [MM2017]_: we pass the training set unchanged from one layer to the other.
 
 .. image:: /_static/user_guide/restack_graph.png
     :align: center
@@ -38,3 +38,5 @@ This may improve the stacked ensemble performance in some cases, specially for m
  .. [W1992] D. H. Wolpert, "Stacked Generalization", Neural Networks, Vol. 5, No. 5, 1992.
 
  .. [MLW2015] Hendrik Jacob van Veen, Le Nguyen The Dat, Armando Segnini. 2015. Kaggle Ensembling Guide. [accessed 2018 Jul 16]. https://mlwave.com/kaggle-ensembling-guide/
+
+ .. [MM2017] Michailidis, Marios; (2017) Investigating machine learning methods in recommender systems. Doctoral thesis (Ph.D), UCL (University College London).
