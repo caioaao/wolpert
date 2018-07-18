@@ -208,8 +208,7 @@ class StackingPipeline(Pipeline):
     >>> from sklearn.naive_bayes import GaussianNB
     >>> from sklearn.svm import SVR
     >>> from sklearn.linear_model import LinearRegression
-    >>> layer0 = make_stack_layer(GaussianNB(priors=None), SVR(),
-    ...                           method='predict')
+    >>> layer0 = make_stack_layer(GaussianNB(priors=None), SVR())
     >>> final_estimator = LinearRegression()
     >>> StackingPipeline([("l0", layer0), ("final", final_estimator)])
     ...                        # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
