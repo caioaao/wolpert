@@ -506,7 +506,7 @@ def make_stack_layer(*estimators, **kwargs):
     if restack:
         wrapper = _choose_wrapper(blending_wrapper)
         transformer_list.append(
-            ('identity-transformer', wrapper.wrap_estimator(
+            ('restacker', wrapper.wrap_estimator(
                 _identity_transformer(), method='transform')))
 
     return StackingLayer(transformer_list, n_jobs=n_jobs)

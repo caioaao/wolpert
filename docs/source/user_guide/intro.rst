@@ -23,6 +23,8 @@ Suppose we are building a stacked ensemble with two layers and the chosen blendi
 
 The interesting part is the final estimator should perform at least as well as the best estimator used on the inner layers of our model [W1992]_.
 
+.. _user_guide__intro_restacking:
+
 Restacking
 ----------
 

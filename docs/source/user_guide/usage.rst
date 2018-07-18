@@ -3,4 +3,146 @@
 Using wolpert to build stacked ensembles
 ========================================
 
+.. currentmodule:: wolpert
 
+We'll build a stacked ensemble for a classification task. Let's start by loading our data:
+
+.. testcode::
+
+   from sklearn.datasets import make_classification
+   RANDOM_STATE = 888
+   X, y = make_classification(n_samples=1000, random_state=RANDOM_STATE)
+
+Now let's choose some base models to build our first layer. We'll go with a KNN, SVM, random forest and extremely randomized trees, all available on scikit learn. It's worth noting that any scikit learn compatible model can be used here:
+
+.. testcode::
+
+   from sklearn.neighbors import KNeighborsClassifier
+   from sklearn.svm import SVC
+   from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
+
+   knn = KNeighborsClassifier()
+   svc = SVC(random_state=RANDOM_STATE, probability=True)
+   rf = RandomForestClassifier(random_state=RANDOM_STATE)
+   et = ExtraTreesClassifier(random_state=RANDOM_STATE)
+
+Now let's test each classifier alone and see what we get. We'll use a cross validation with 3 folds for this and evaluate using log loss.
+
+.. testcode::
+
+   import numpy as np
+   from sklearn.model_selection import StratifiedKFold
+   from sklearn.metrics import log_loss
+
+   def evaluate(clf, clf_name, X, y):
+       kfold = StratifiedKFold(n_splits=3, random_state=RANDOM_STATE)
+       scores = []
+       for train_idx, test_idx in kfold.split(X, y):
+           ypreds =  clf.fit(X[train_idx], y[train_idx]).predict_proba(X[test_idx])
+           scores.append(log_loss(y[test_idx], ypreds))
+       print("Logloss for %s: %.5f (+/- %.5f)" % (clf_name, np.mean(scores), np.std(scores)))
+       return scores
+
+   evaluate(knn, "KNN classifier", X, y)
+   evaluate(rf, "Random Forest", X, y)
+   evaluate(svc, "SVM classifier", X, y)
+   evaluate(et, "ExtraTrees", X, y)
+
+.. testoutput::
+
+    Logloss for KNN classifier: 0.65990 (+/- 0.10233)
+    Logloss for Random Forest: 0.47338 (+/- 0.21536)
+    Logloss for SVM classifier: 0.24082 (+/- 0.02127)
+    Logloss for ExtraTrees: 0.53194 (+/- 0.08710)
+
+The best model here is the SVM. We now have a baseline to build our stacked ensemble.
+
+The first thing that needs to be decided is the stacking strategy we'll use. The dataset is pretty small, so it's ok to go for a cross validation strategy.
+
+.. note::
+   To know more about the strategies implemented in wolpert, read the :ref:`strategies chapter <user_guide__strategies>`.
+
+The easiest way to do so is using the helper function :func:`pipeline.make_stack_layer`. This function takes a list of steps to be used to build a layer and the blending wrapper.
+
+.. testcode::
+
+   from wolpert.pipeline import make_stack_layer
+
+   layer0 = make_stack_layer(knn, rf, svc, et, blending_wrapper='cv')
+
+Ok, now that we have our first layer, let's put a very simple model on top of it and see how it goes. For validating the meta estimator, we must first generate the blended dataset (see :meth:`pipeline.StackingLayer.fit_blend` for more info):
+
+.. testcode::
+
+   Xt, t_indexes = layer0.fit_blend(X, y)
+   yt = y[t_indexes]
+
+Now we can build our meta estimator and evaluate it:
+
+.. testcode::
+
+   from sklearn.linear_model import LogisticRegression
+
+   meta = LogisticRegression(random_state=RANDOM_STATE)
+
+   evaluate(meta, "Meta estimator", Xt, yt)
+
+.. testoutput::
+
+   Logloss for Meta estimator: 0.22706 (+/- 0.02656)
+
+Notice the score is already better than our best classifier on the first layer. Now let's construct the final model. To do this we'll use the class :cls:`pipeline.StackingPipeline`. This acts like scikit learn's `Pipeline <http://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html>`_: each output from a step is piped to the next step. The difference is that ``StackingPipeline`` will use blending when fitting the models to a dataset.
+
+.. testcode::
+
+   from wolpert.pipeline import StackingPipeline
+
+   stacked_clf = StackingPipeline([("l0", layer0), ("meta", meta)])
+
+Now let's see how we can improve our model.
+
+Multi-layer stacked ensemble
+----------------------------
+
+Let's try a simple approach: we'll grab the best two models from the first layer and create a second one. We'll also use :ref:`restacking <user_guide__intro_restacking>` on the first layer. The final meta estimator will remain the same.
+
+.. testcode::
+
+   layer0_clfs = [KNeighborsClassifier(),
+                  SVC(random_state=RANDOM_STATE, probability=True),
+                  RandomForestClassifier(random_state=RANDOM_STATE),
+                  ExtraTreesClassifier(random_state=RANDOM_STATE)]
+
+   layer1_clfs = [SVC(random_state=RANDOM_STATE, probability=True),
+                  RandomForestClassifier(random_state=RANDOM_STATE)]
+
+
+
+   layer0 = make_stack_layer(*layer0_clfs, blending_wrapper="cv", restack=True)
+   layer1 = make_stack_layer(*layer1_clfs, blending_wrapper="cv")
+   meta_clf = LogisticRegression(random_state=RANDOM_STATE)
+   # meta_clf = SVC(random_state=RANDOM_STATE, probability=True)
+   # meta_clf = RandomForestClassifier(random_state=RANDOM_STATE)
+
+   # first let's build the pipeline without the final estimator to see its
+   # performance
+   transformer = StackingPipeline([("layer0", layer0), ("layer1", layer1)])
+   Xt, t_indexes = transformer.fit_blend(X, y)
+
+   evaluate(meta_clf, "Meta classificator with two layers", X, y)
+
+.. testoutput::
+
+   Logloss for Meta classificator with two layers: 0.28145 (+/- 0.03106)
+
+Well, it didn't help. Let's keep the old model then. There are some reasons for this: maybe our model is too complex for the dataset, so a single layer is better.
+
+Cross validation
+----------------
+
+TODO
+
+Wrappers API
+------------
+
+TODO
