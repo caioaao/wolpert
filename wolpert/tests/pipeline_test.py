@@ -186,3 +186,23 @@ def test_pipeline():
 
         # identity estimator must return the same result as first layer
         assert_array_equal(preds_l0, preds_pipeline)
+
+    # check that pipeline also provides `fit_blend` when final estimator does it
+    l0 = make_stack_layer(LinearRegression(), LinearRegression())
+    reg = StackingPipeline([("layer-0", clone(l0)), ("layer-1", clone(l0))])
+
+    l1 = clone(l0)
+    Xt, indexes = l0.fit_blend(X, y)
+    Xt, indexes = l1.fit_blend(Xt, y[indexes])
+
+    Xt_pipeline, indexes_pipeline = reg.fit_blend(X, y)
+    assert_array_equal(Xt, Xt_pipeline)
+    assert_array_equal(indexes, indexes_pipeline)
+
+    # check that pipeline also provides `fit_blend` when final estimator does it
+    Xt, indexes = l0.blend(X, y)
+    Xt, indexes = l1.blend(Xt, y[indexes])
+
+    Xt_pipeline, indexes_pipeline = reg.blend(X, y)
+    assert_array_equal(Xt, Xt_pipeline)
+    assert_array_equal(indexes, indexes_pipeline)
