@@ -439,6 +439,9 @@ def make_stack_layer(*estimators, **kwargs):
     n_jobs = kwargs.pop('n_jobs', 1)
     blending_wrapper = kwargs.pop('blending_wrapper', "cv")
 
+    if kwargs:
+        raise ValueError("Invalid parameters: %s" % kwargs.keys())
+
     named_estimators = _name_estimators(estimators)
 
     transformer_list = _wrap_estimators(
