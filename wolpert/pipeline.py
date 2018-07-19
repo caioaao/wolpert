@@ -2,6 +2,7 @@ import numpy as np
 
 from sklearn.externals import six
 from sklearn.externals.joblib import Parallel, delayed
+from sklearn.model_selection import cross_validate
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.utils.metaestimators import if_delegate_has_method
 from sklearn.utils.validation import check_memory
@@ -409,13 +410,17 @@ class StackingPipeline(Pipeline):
         return self._final_estimator.fit_blend(Xt, y[indexes], **fit_params)
 
     @if_delegate_has_method(delegate='_final_estimator')
-    def blend(self, X, y=None, **fit_params):
+    def blend(self, X, y=None):
         """Apply blends, and blends with the final estimator
 
         Parameters
         ----------
         X : iterable
-            Data to transform. Must fulfill input requirements of first step
+            Training data. Must fulfill input requirements of first step of
+            the pipeline.
+
+        y : iterable, default=None
+            Training targets. Must fulfill label requirements for all steps
             of the pipeline.
 
         Returns
@@ -430,6 +435,60 @@ class StackingPipeline(Pipeline):
             if transform is not None:
                 Xt, indexes = transform.blend(Xt, y[indexes])
         return Xt, indexes
+
+    def score(self, X, y=None, **validation_args):
+        """Scores the model using scikit learn's ``cross_validate``
+
+        Blends the whole dataset and then uses the final estimator to produce a
+        score
+
+        Parameters
+        ----------
+        X : iterable
+            Training data. Must fulfill input requirements of first step of
+            the pipeline.
+
+        y : iterable, default=None
+            Training targets. Must fulfill label requirements for all steps
+            of the pipeline.
+
+        **score_args : dictionary
+            Arguments to be passed to ``cross_validate``
+
+        Returns
+        -------
+        scores : dict of float arrays of shape=(n_splits,)
+            Array of scores of the estimator for each run of the cross validation.
+
+            A dict of arrays containing the score/time arrays for each scorer is
+            returned. The possible keys for this ``dict`` are:
+
+                ``test_score``
+                    The score array for test scores on each cv split.
+                ``train_score``
+                    The score array for train scores on each cv split.
+                    This is available only if ``return_train_score`` parameter
+                    is ``True``.
+                ``fit_time``
+                    The time for fitting the estimator on the train
+                    set for each cv split.
+                ``score_time``
+                    The time for scoring the estimator on the test set for each
+                    cv split. (Note time for scoring on the train set is not
+                    included even if ``return_train_score`` is set to ``True``
+                ``estimator``
+                    The estimator objects for each cv split.
+                    This is available only if ``return_estimator`` parameter
+                    is set to ``True``.
+
+        """
+        Xt, indexes = X, np.arange(X.shape[0])
+
+        for _, transform in self.steps[:-1]:
+            if transform is not None:
+                Xt, indexes = transform.blend(Xt, y[indexes])
+
+        return cross_validate(self._final_estimator, X, y, **validation_args)
 
 def _identity(x):
     return x
@@ -506,7 +565,7 @@ def make_stack_layer(*estimators, **kwargs):
     if restack:
         wrapper = _choose_wrapper(blending_wrapper)
         transformer_list.append(
-            ('identity-transformer', wrapper.wrap_estimator(
+            ('restacker', wrapper.wrap_estimator(
                 _identity_transformer(), method='transform')))
 
     return StackingLayer(transformer_list, n_jobs=n_jobs)
