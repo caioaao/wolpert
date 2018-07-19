@@ -99,6 +99,24 @@ Notice the score is already better than our best classifier on the first layer. 
 
    stacked_clf = StackingPipeline([("l0", layer0), ("meta", meta)])
 
+.. note::
+
+   The final class has a helper method for evaluating it, called :meth:`score <pipeline.StackingPipeline.score>`, but it depends on scikit learn's `cross_validate <http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.cross_validate.html>`_ function and this function doesn't allow us to pass the method we want it to call on the estimator, always calling ``predict``. Here's an example:
+
+   .. testcode::
+
+      stacked_clf.fit(X, y)
+      scores = stacked_clf.score(X, y, scoring='neg_log_loss', cv=3)
+
+      print("Logloss for Stacked classifier: %.5f (+/- %.5f)" % (-np.mean(scores["test_score"]),
+                                                                 np.std(scores["test_score"])))
+
+   .. testoutput::
+
+      Logloss for Stacked classifier: 0.28145 (+/- 0.03106)
+
+   Notice the score is worse than our handcrafted evaluation.
+
 Now let's see how we can improve our model.
 
 Multi-layer stacked ensemble
