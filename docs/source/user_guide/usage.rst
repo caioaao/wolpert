@@ -152,10 +152,31 @@ Let's try a simple approach: we'll grab the best two models from the first layer
 
 Well, it didn't help. Let's keep the old model then. There are some reasons for this: maybe our model is too complex for the dataset, so a single layer is better.
 
-Cross validation
-----------------
+Model selection
+---------------
 
-TODO
+We can access all attributes on all estimators just like in a regular scikit learn pipeline. With that we can follow the same steps for model selection:
+
+.. testcode::
+
+   from sklearn.model_selection import GridSearchCV
+
+   param_grid = {
+       "l0__svc__method": ["predict_proba", "decision_function"],
+       "l0__svc__estimator__C": [.1, 1., 10]}
+
+   clf_cv = GridSearchCV(stacked_clf, param_grid, scoring="neg_log_loss", n_jobs=-1)
+   clf_cv.fit(X, y)
+   test_scores = clf_cv.cv_results_["mean_test_score"]
+   print("Logloss for best model on CV: %.5f (+/- %.5f)" % (-test_scores.mean(), test_scores.std()) )
+
+.. testoutput::
+
+   Logloss for best model on CV: 0.22491 (+/- 0.00259)
+
+.. note::
+
+   Remember that this score should be compared to the one from the :meth:`score <wolpert.pipeline.StackingPipeline.score>` method.
 
 Wrappers API
 ------------
