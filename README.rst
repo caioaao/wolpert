@@ -23,18 +23,16 @@ Building a simple model
 
 First we need the layers of our model. The simplest way is using the helper function `make_stack_layer <http://wolpert.readthedocs.io/en/latest/generated/wolpert.pipeline.html#wolpert.pipeline.make_stack_layer>`_:
 
-.. testcode::
-
      from sklearn.ensemble import RandomForestClassifier
      from sklearn.svm import SVC
      from sklearn.neighbors import KNeighborsClassifier
      from sklearn.linear_model import LogisticRegression
      from wolpert.pipeline import make_stack_layer, StackingPipeline
-     
+
      layer0 = make_stack_layer(SVC(), KNeighborsClassifier(),
                                RandomForestClassifier(),
                                blending_wrapper='holdout')
-                               
+
      clf = StackingPipeline([('l0', layer0),
                              ('l1', LogisticRegression())])
 
