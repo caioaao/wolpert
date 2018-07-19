@@ -227,7 +227,7 @@ class StackingPipeline(Pipeline):
     def _fit_blend_one(self):
         return _fit_blend_one
 
-    def _validate_transformers(self):
+    def _validate_steps(self):
         super(StackingPipeline, self)._validate_steps()
         names, estimators = zip(*self.steps)
 
@@ -237,9 +237,8 @@ class StackingPipeline(Pipeline):
         for t in transformers:
             if t is None:
                 continue
-            if hasattr(t, "blend"):
-                raise TypeError("All intermediate steps should be "
-                                "transformers and implement blend."
+            if not hasattr(t, "blend"):
+                raise TypeError("All intermediate steps should implement blend."
                                 " '%s' (type %s) doesn't" % (t, type(t)))
 
     def _fit(self, X, y=None, **fit_params):
@@ -276,9 +275,10 @@ class StackingPipeline(Pipeline):
                 # transformer. This is necessary when loading the transformer
                 # from the cache.
                 self.steps[step_idx] = (name, fitted_transformer)
+
         if self._final_estimator is None:
-            raise ValueError(
-                "Can't build StackingPipeline without final estimator")
+            return Xt, {}, indexes
+
         return Xt, fit_params_steps[self.steps[-1][0]], indexes
 
     def fit(self, X, y=None, **fit_params):
@@ -309,7 +309,8 @@ class StackingPipeline(Pipeline):
         """
         Xt, fit_params, indexes = self._fit(X, y, **fit_params)
 
-        self._final_estimator.fit(Xt, y[indexes], **fit_params)
+        if self._final_estimator is not None:
+            self._final_estimator.fit(Xt, y[indexes], **fit_params)
 
         return self
 
@@ -347,9 +348,8 @@ class StackingPipeline(Pipeline):
     def fit_predict(self, X, y=None, **fit_params):
         """Applies fit_predict of last step in pipeline after transforms.
 
-        Applies fit_transforms of a pipeline to the data, followed by the
-        fit_predict method of the final estimator in the pipeline. Valid
-        only if the final estimator implements fit_predict.
+        Helper function. Same result as calling ``fit()`` followed by
+        ``predict``.
 
         Parameters
         ----------
@@ -369,10 +369,67 @@ class StackingPipeline(Pipeline):
         Returns
         -------
         y_pred : array-like
+
         """
         self.fit(X, y, **fit_params)
         return self.predict(X)
 
+    @if_delegate_has_method(delegate='_final_estimator')
+    def fit_blend(self, X, y=None, **fit_params):
+        """Applies fit_blend of last step in pipeline after transforms.
+
+        Applies fit_blends of a pipeline to the data, followed by the
+        fit_blend method of the final estimator in the pipeline. Valid
+        only if the final estimator implements fit_blend.
+
+        Parameters
+        ----------
+        X : iterable
+            Training data. Must fulfill input requirements of first step of
+            the pipeline.
+
+        y : iterable, default=None
+            Training targets. Must fulfill label requirements for all steps
+            of the pipeline.
+
+        **fit_params : dict of string -> object
+            Parameters passed to the ``fit`` method of each step, where
+            each parameter name is prefixed such that parameter ``p`` for step
+            ``s`` has key ``s__p``.
+
+        Returns
+        -------
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
+
+        """
+        Xt, fit_params, indexes = self._fit(X, y, **fit_params)
+
+        return self._final_estimator.fit_blend(Xt, y[indexes], **fit_params)
+
+    @if_delegate_has_method(delegate='_final_estimator')
+    def blend(self, X, y=None, **fit_params):
+        """Apply blends, and blends with the final estimator
+
+        Parameters
+        ----------
+        X : iterable
+            Data to transform. Must fulfill input requirements of first step
+            of the pipeline.
+
+        Returns
+        -------
+        X_transformed, indexes : tuple of (sparse matrix, array-like)
+            `X_transformed` is the transformed dataset.
+            `indexes` is the indexes of the transformed data on the input.
+
+        """
+        Xt, indexes = X, np.arange(X.shape[0])
+        for _, transform in self.steps:
+            if transform is not None:
+                Xt, indexes = transform.blend(Xt, y[indexes])
+        return Xt, indexes
 
 def _identity(x):
     return x
