@@ -138,16 +138,13 @@ Let's try a simple approach: we'll grab the best two models from the first layer
 
    layer0 = make_stack_layer(*layer0_clfs, blending_wrapper="cv", restack=True)
    layer1 = make_stack_layer(*layer1_clfs, blending_wrapper="cv")
-   meta_clf = LogisticRegression(random_state=RANDOM_STATE)
-   # meta_clf = SVC(random_state=RANDOM_STATE, probability=True)
-   # meta_clf = RandomForestClassifier(random_state=RANDOM_STATE)
 
    # first let's build the pipeline without the final estimator to see its
    # performance
    transformer = StackingPipeline([("layer0", layer0), ("layer1", layer1)])
    Xt, t_indexes = transformer.fit_blend(X, y)
 
-   evaluate(meta_clf, "Meta classificator with two layers", X, y)
+   evaluate(meta, "Meta classificator with two layers", X, y)
 
 .. testoutput::
 
@@ -163,4 +160,29 @@ TODO
 Wrappers API
 ------------
 
-TODO
+Up until now we relied on the default arguments for wrapping our models. To have more control over this arguments, one can use the :mod:`wolpert.wrappers` API. Let's build our model now using a 10-fold cross validation. For this, we'll use the :class:`CVWrapper <wolpert.wrappers.CVWrapper>` helper class.
+
+.. testcode::
+
+   from wolpert.wrappers import CVWrapper
+
+   cv_wrapper = CVWrapper(cv=10, n_cv_jobs=-1)
+
+The main method for this class is :meth:`wrap_estimator <wolpert.wrappers.CVWrapper.wrap_estimator>`, that receives an estimator and returns it wrapped with a class that exposes the methods ``blend`` and ``fit_blend``. We can also pass it to the :paramref:`wolpert.pipeline.make_stack_layer.blending_wrapper` argument and it will be used to wrap all the estimators on the layer:
+
+.. testcode::
+
+   layer0 = make_stack_layer(knn, rf, svc, et, blending_wrapper=cv_wrapper)
+   stacked_clf = StackingPipeline([("l0", layer0), ("meta", meta)])
+
+Just out of curiosity, here's the model performance:
+
+.. testcode::
+
+   Xt, t_indexes = layer0.fit_blend(X, y)
+
+   evaluate(meta, "Meta classificator with CV=10 on first layer", Xt, y[t_indexes])
+
+.. testoutput::
+
+   Logloss for Meta classificator with CV=10 on first layer: 0.22241 (+/- 0.03292)
