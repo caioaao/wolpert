@@ -21,7 +21,7 @@ The easiest way to install is using pip. Just run ``pip install wolpert`` and yo
 Building a simple model
 -----------------------
 
-First we need the layers of our model. The simplest way is using the helper function `make_stack_layer <http://wolpert.readthedocs.io/en/latest/generated/wolpert.pipeline.html#wolpert.pipeline.make_stack_layer>`_:
+First we need the layers of our model. The simplest way is using the helper function `make_stack_layer <http://wolpert.readthedocs.io/en/latest/generated/wolpert.pipeline.html#wolpert.pipeline.make_stack_layer>`_::
 
      from sklearn.ensemble import RandomForestClassifier
      from sklearn.svm import SVC
