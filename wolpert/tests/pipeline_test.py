@@ -137,9 +137,7 @@ def test_layer_helper_constructor():
         reg_layer = make_stack_layer(
             *base_estimators, blending_wrapper="holdout", **layer_params)
 
-        # TODO check restack on holdout. it's working, but _check_layer must be
-        # refactored to handle it
-        _check_layer(reg_layer, False)
+        _check_layer(reg_layer, layer_params["restack"])
 
         # test with wrapper object
         for wrapper_params in ParameterGrid(STACK_LAYER_HOLDOUT_PARAMS):
@@ -149,9 +147,7 @@ def test_layer_helper_constructor():
             wrapper = HoldoutWrapper(**wrapper_params)
             reg_layer = make_stack_layer(
                 *base_estimators, blending_wrapper=wrapper, **layer_params)
-            # TODO check restack on holdout. it's working, but _check_layer
-            # must be refactored to handle it
-            _check_layer(reg_layer, False)
+            _check_layer(reg_layer, layer_params["restack"])
 
 
 class IdentityEstimator(BaseEstimator):

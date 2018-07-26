@@ -49,6 +49,13 @@ def _fit_transform_one(transformer, X, y, weight, **fit_params):
     return _apply_weight(res, weight), transformer
 
 
+def _stack_results(Xs):
+    if any(sparse.issparse(f) for f in Xs):
+        Xs = sparse.hstack(Xs).tocsr()
+    else:
+        Xs = np.hstack(Xs)
+    return Xs
+
 class Pipeline(_BaseComposition):
     """Pipeline of transforms with a final estimator.
 
@@ -769,13 +776,6 @@ class FeatureUnion(_BaseComposition, TransformerMixin):
         self._update_transformer_list(transformers)
         return self
 
-    def _stack_results(self, Xs):
-        if any(sparse.issparse(f) for f in Xs):
-            Xs = sparse.hstack(Xs).tocsr()
-        else:
-            Xs = np.hstack(Xs)
-        return Xs
-
     def fit_transform(self, X, y=None, **fit_params):
         """Fit all transformers, transform the data and concatenate results.
 
@@ -805,7 +805,7 @@ class FeatureUnion(_BaseComposition, TransformerMixin):
         Xs, transformers = zip(*result)
         self._update_transformer_list(transformers)
 
-        return self._stack_results(Xs)
+        return _stack_results(Xs)
 
     def transform(self, X):
         """Transform X separately by each transformer, concatenate results.
@@ -829,7 +829,7 @@ class FeatureUnion(_BaseComposition, TransformerMixin):
             # All transformers are None
             return np.zeros((X.shape[0], 0))
 
-        return self._stack_results(Xs)
+        return _stack_results(Xs)
 
     def _update_transformer_list(self, transformers):
         transformers = iter(transformers)

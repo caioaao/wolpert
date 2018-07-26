@@ -104,7 +104,7 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
         return fitted_estimator, preds, holdout_indexes
 
     def blend(self, X, y, **fit_params):
-        """Transform dataset using cross validation.
+        """Transform dataset using a train-test split.
 
         Parameters
         ----------
