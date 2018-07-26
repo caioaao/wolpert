@@ -339,3 +339,73 @@ class TimeSeriesStackableTransformer(BaseStackableTransformer):
         blend_results = self.blend(X, y, **fit_params)
         self.fit(X, y, **fit_params)
         return blend_results
+
+
+class TimeSeriesWrapper(BaseWrapper):
+    """Helper class to wrap estimators with ``TimeSeriesStackableTransformer``
+
+    Parameters
+    ----------
+
+    default_method : string, optional (default='auto')
+        This method will be called on the estimator to produce the output of
+        transform. If the method is ``auto``, will try to invoke, for each
+        estimator, ``predict_proba``, ``decision_function`` or ``predict``
+        in that order.
+
+    offset : integer, optional (default=0)
+        Number of rows to skip after the last train split rows
+
+    test_set_size : integer, optional (default=1)
+        Size of the test set. This will also be the amount of rows added to the
+        training set at each iteration
+
+    min_train_size : int, optional (default=1)
+        Minimum size for a single training set.
+
+    max_train_size : int, optional (default=None)
+        Maximum size for a single training set.
+
+    n_cv_jobs : int, optional (default=1)
+        Number of jobs to be passed to ``cross_val_predict`` during
+        ``blend``.
+
+    """
+
+    def __init__(self, default_method='auto', offset=0, test_set_size=1,
+                 min_train_size=1, max_train_size=None, n_cv_jobs=1):
+        super(TimeSeriesWrapper, self).__init__(default_method)
+        self.offset = offset
+        self.test_set_size = test_set_size
+        self.min_train_size = min_train_size
+        self.max_train_size = max_train_size
+        self.n_cv_jobs = n_cv_jobs
+
+    def wrap_estimator(self, estimator, method=None, **kwargs):
+        """Wraps an estimator and returns a transformer that is suitable for stacking.
+
+        Parameters
+        ----------
+        estimator : predictor
+            The estimator to be blended.
+
+        method : string or None, optional (default=None)
+            If not ``None``, his method will be called on the estimator instead
+            of ``default_method`` to produce the output of transform. If the
+            method is ``auto``, will try to invoke, for each estimator,
+            ``predict_proba``, ``decision_function`` or ``predict`` in that
+            order.
+
+        Returns
+        -------
+        t : TimeSeriesStackableTransformer
+
+        """
+        method = method or self.default_method
+
+        return TimeSeriesStackableTransformer(
+            estimator, method=method, offset=self.offset,
+            test_set_size=self.test_set_size,
+            min_train_size=self.min_train_size,
+            max_train_size=self.max_train_size,
+            n_cv_jobs=self.n_cv_jobs)

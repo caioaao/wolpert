@@ -11,7 +11,7 @@ from sklearn.linear_model import RidgeClassifier, LinearRegression
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.ensemble import RandomForestClassifier
 
-from wolpert.wrappers.time_series import (TimeSeriesSplit,
+from wolpert.wrappers.time_series import (TimeSeriesSplit, TimeSeriesWrapper,
                                           TimeSeriesStackableTransformer)
 
 from .utils import check_estimator
@@ -88,66 +88,52 @@ def test_regression():
     meta_params = {'method': ['auto', 'predict']}
     meta_params.update(META_ESTIMATOR_PARAMS)
 
-    regressors = [LinearRegression(), LinearSVR(random_state=RANDOM_SEED)]
+    regressor = LinearRegression()
 
-    for reg in regressors:
-        for params in ParameterGrid(meta_params):
-            blended_reg = TimeSeriesStackableTransformer(reg, **params)
-            _check_estimator(blended_reg)
+    for params in ParameterGrid(meta_params):
+        blended_reg = TimeSeriesStackableTransformer(regressor, **params)
+        _check_estimator(blended_reg)
 
 
 def test_classification():
     # tests classification with various parameter settings
+    clf = RandomForestClassifier(random_state=RANDOM_SEED)
+    meta_params = {'method': ['auto', 'predict',
+                              'predict_proba']}
+    meta_params.update(META_ESTIMATOR_PARAMS)
 
-    testcases = [{'clf': RandomForestClassifier(random_state=RANDOM_SEED),
-                  'extra_params': {'method': ['auto', 'predict',
-                                              'predict_proba']}},
-                 {'clf': LinearSVC(random_state=RANDOM_SEED),
-                  'extra_params': {'method': ['auto', 'predict',
-                                              'decision_function']}},
-                 {'clf': RidgeClassifier(random_state=RANDOM_SEED),
-                  'extra_params': {'method': ['auto', 'predict']}}]
-
-    for testcase in testcases:
-        clf = testcase['clf']
-
-        meta_params = deepcopy(testcase['extra_params'])
-        meta_params.update(META_ESTIMATOR_PARAMS)
-
-        for params in ParameterGrid(meta_params):
-            blended_clf = TimeSeriesStackableTransformer(clf, **params)
-            _check_estimator(blended_clf)
+    for params in ParameterGrid(meta_params):
+        blended_clf = TimeSeriesStackableTransformer(clf, **params)
+        _check_estimator(blended_clf)
 
 
-WRAPPER_PARAMS = {"default_method": ["auto", "predict_proba"],
-                  "holdout_size": [.1, .2],
-                  "random_state": [10, 20, 30],
-                  "fit_to_all_data": [True, False]}
+def test_wrapper():
+    dummy_estimator = "dummy"
 
+    wrapper_params = deepcopy(META_ESTIMATOR_PARAMS)
+    wrapper_params["default_method"] = ["auto", "predict", "predict_proba"]
 
-# def test_wrapper():
-#     dummy_estimator = "dummy"
+    for params in ParameterGrid(wrapper_params):
+        wrapper = TimeSeriesWrapper(**params)
 
-#     for params in ParameterGrid(WRAPPER_PARAMS):
-#         wrapper = TimeSeriesSplitWrapper(**params)
+        default_method = params.pop("default_method")
 
-#         default_method = params.pop("default_method")
+        for method in [None, "auto", "predict_proba"]:
+            wrapped_est = wrapper.wrap_estimator(
+                dummy_estimator, method=method)
 
-#         for method in [None, "auto", "predict_proba"]:
-#             wrapped_est = wrapper.wrap_estimator(
-#                 dummy_estimator, method=method)
+            direct_wrapped_est = TimeSeriesStackableTransformer(
+                dummy_estimator, method=method, **params)
 
-#             direct_wrapped_est = TimeSeriesStackableTransformer(
-#                 dummy_estimator, method=method, **params)
+            # checks that method is chosen appropriately
+            if method is None:
+                assert_equal(wrapped_est.method, default_method)
+            else:
+                assert_equal(wrapped_est.method, method)
 
-#             # checks that method is chosen appropriately
-#             if method is None:
-#                 assert_equal(wrapped_est.method, default_method)
-#             else:
-#                 assert_equal(wrapped_est.method, method)
-
-#             # check that both transformers are the same
-#             for k in ["estimator", "holdout_size", "random_state",
-#                       "fit_to_all_data"]:
-#                 assert_equal(getattr(wrapped_est, k),
-#                              getattr(direct_wrapped_est, k))
+            # check that both transformers are the same
+            for k in ["estimator", "offset", "test_set_size",
+                      "min_train_size", "max_train_size",
+                      "n_cv_jobs"]:
+                assert_equal(getattr(wrapped_est, k),
+                             getattr(direct_wrapped_est, k))
