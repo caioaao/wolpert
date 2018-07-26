@@ -188,7 +188,7 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
 
 
 class HoldoutWrapper(BaseWrapper):
-    """Helper class to wrap estimators with ``CVStackableTransformer``
+    """Helper class to wrap estimators with ``HoldoutStackableTransformer``
 
     Parameters
     ----------
@@ -244,7 +244,7 @@ class HoldoutWrapper(BaseWrapper):
 
         Returns
         -------
-        t : CVStackableTransformer
+        t : HoldoutStackableTransformer
 
         """
         method = method or self.default_method
