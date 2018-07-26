@@ -7,7 +7,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.base import clone, BaseEstimator
 
 from wolpert.pipeline import StackingLayer, StackingPipeline, make_stack_layer
-from wolpert.wrappers import CVStackableTransformer, CVWrapper, HoldoutWrapper
+from wolpert.wrappers import (CVStackableTransformer, CVWrapper,
+                              HoldoutWrapper, TimeSeriesWrapper)
 
 iris = datasets.load_iris()
 X, y = iris.data[:, 1:3], iris.target
@@ -27,6 +28,13 @@ STACK_LAYER_HOLDOUT_PARAMS = {
     'holdout_size': [.5],
     'random_state': [435],
     'fit_to_all_data': [True, False]}
+
+STACK_LAYER_TIME_SERIES_PARAMS = {
+    'default_method': ['auto', 'predict', 'predict_proba'],
+    'offset': [0, 10],
+    'test_set_size': [20],
+    'min_train_size': [30],
+    'max_train_size': [60]}
 
 
 def _check_restack(X, Xorig):
@@ -145,6 +153,22 @@ def test_layer_helper_constructor():
                 continue
 
             wrapper = HoldoutWrapper(**wrapper_params)
+            reg_layer = make_stack_layer(
+                *base_estimators, blending_wrapper=wrapper, **layer_params)
+            _check_layer(reg_layer, layer_params["restack"])
+
+        # test with string as wrapper
+        reg_layer = make_stack_layer(
+            *base_estimators, blending_wrapper="time_series", **layer_params)
+
+        _check_layer(reg_layer, layer_params["restack"])
+
+        # test with wrapper object
+        for wrapper_params in ParameterGrid(STACK_LAYER_TIME_SERIES_PARAMS):
+            if wrapper_params['default_method'] is 'predict_proba':
+                continue
+
+            wrapper = TimeSeriesWrapper(**wrapper_params)
             reg_layer = make_stack_layer(
                 *base_estimators, blending_wrapper=wrapper, **layer_params)
             _check_layer(reg_layer, layer_params["restack"])

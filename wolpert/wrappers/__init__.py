@@ -1,8 +1,10 @@
 from .cross_val import CVStackableTransformer, CVWrapper
 from .holdout import HoldoutStackableTransformer, HoldoutWrapper
+from .time_series import TimeSeriesStackableTransformer, TimeSeriesWrapper
 
 __all__ = ["CVStackableTransformer", "CVWrapper",
-           "HoldoutStackableTransformer", "HoldoutWrapper"]
+           "HoldoutStackableTransformer", "HoldoutWrapper",
+           "TimeSeriesStackableTransformer", "TimeSeriesWrapper"]
 
 
 def _choose_wrapper(blending_wrapper):
@@ -19,5 +21,7 @@ def _choose_wrapper(blending_wrapper):
             return CVWrapper()
         elif blending_wrapper == "holdout":
             return HoldoutWrapper()
+        elif blending_wrapper == "time_series":
+            return TimeSeriesWrapper()
     else:
         return blending_wrapper
