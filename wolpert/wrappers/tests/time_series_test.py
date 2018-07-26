@@ -70,7 +70,7 @@ RANDOM_SEED = 8939
 X, y = datasets.make_classification(random_state=RANDOM_SEED, n_samples=200)
 
 META_ESTIMATOR_PARAMS = {'offset': [0, 1],
-                         'test_set_size': [1, 20],
+                         'test_set_size': [10, 20],
                          'min_train_size': [30, 50],
                          'max_train_size': [None, 60]}
 
