@@ -4,12 +4,9 @@ import pytest
 from copy import deepcopy
 
 from sklearn import datasets
-from sklearn.utils.testing import (assert_equal, assert_array_equal,
-                                   assert_almost_equal)
+from sklearn.utils.testing import assert_equal, assert_array_equal
 from sklearn.model_selection import ParameterGrid
-from sklearn.linear_model import RidgeClassifier, LinearRegression
-from sklearn.svm import LinearSVC, LinearSVR
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LinearRegression, LogisticRegression
 
 from wolpert.wrappers.time_series import (TimeSeriesSplit, TimeSeriesWrapper,
                                           TimeSeriesStackableTransformer)
@@ -67,7 +64,7 @@ def test_split_class():
 
 RANDOM_SEED = 8939
 
-X, y = datasets.make_classification(random_state=RANDOM_SEED, n_samples=200)
+X, y = datasets.make_classification(random_state=RANDOM_SEED, n_samples=100)
 
 META_ESTIMATOR_PARAMS = {'offset': [0, 1],
                          'test_set_size': [10, 20],
@@ -97,7 +94,7 @@ def test_regression():
 
 def test_classification():
     # tests classification with various parameter settings
-    clf = RandomForestClassifier(random_state=RANDOM_SEED)
+    clf = LogisticRegression(random_state=RANDOM_SEED)
     meta_params = {'method': ['auto', 'predict',
                               'predict_proba']}
     meta_params.update(META_ESTIMATOR_PARAMS)

@@ -1,9 +1,8 @@
 from sklearn.utils.testing import assert_array_equal
 from sklearn import datasets
 from sklearn.model_selection import ParameterGrid, StratifiedKFold
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.svm import LinearSVR
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.base import clone, BaseEstimator
 
 from wolpert.pipeline import StackingLayer, StackingPipeline, make_stack_layer
@@ -103,10 +102,10 @@ def test_layer_regression():
 
 def test_layer_classification():
     base_clfs = [
-        ('rf1', CVStackableTransformer(RandomForestClassifier(
-            random_state=RANDOM_SEED, criterion='gini'))),
-        ('rf2', CVStackableTransformer(RandomForestClassifier(
-            random_state=RANDOM_SEED, criterion='entropy')))]
+        ('lr1', CVStackableTransformer(LogisticRegression(
+            random_state=RANDOM_SEED))),
+        ('rf2', CVStackableTransformer(LogisticRegression(
+            random_state=RANDOM_SEED, penalty='l1')))]
 
     for params in ParameterGrid(STACK_LAYER_PARAMS):
         if params["restack"]:
