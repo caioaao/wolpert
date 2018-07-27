@@ -49,10 +49,11 @@ def test_split_class():
                          [[1], [2]]])
 
     # with test_set_size
-    arr = np.arange(3)
+    arr = np.arange(5)
     ts = TimeSeriesSplit(test_set_size=2)
     assert_splits_equal(ts.split(arr),
-                        [[[0], [1, 2]]])
+                        [[[0], [1, 2]],
+                         [[0, 1, 2], [3, 4]]])
 
     # min/max train_size validation
     arr = np.arange(3)

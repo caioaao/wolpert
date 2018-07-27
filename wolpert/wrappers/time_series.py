@@ -219,7 +219,8 @@ class TimeSeriesSplit:
         n_samples = _num_samples(X)
         indices = np.arange(n_samples)
         train_ends = range(self.min_train_size,
-                           n_samples - (self.test_set_size + self.offset))
+                           n_samples - (self.test_set_size + self.offset),
+                           self.test_set_size)
 
         for train_end in train_ends:
             test_start = train_end + self.offset
