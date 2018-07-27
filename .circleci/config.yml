@@ -7,14 +7,14 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps1-{{ .Branch }}-{{ .Revision }}
+          key: deps2-{{ .Branch }}-{{ .Revision }}
       - run:
           command: |
             python3 -m venv venv
             . venv/bin/activate
             pip install -r dev_tools/requirements.txt
       - save_cache:
-          key: deps1-{{ .Branch }}-{{ .Revision }}
+          key: deps2-{{ .Branch }}-{{ .Revision }}
           paths:
             - "venv"
       - run:
@@ -28,14 +28,14 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps1-{{ .Branch }}-{{ .Revision }}
+          key: deps2-{{ .Branch }}-{{ .Revision }}
       - run:
           command: |
             . venv/bin/activate
             pip install -r docs/requirements.txt
             pip install .
       - save_cache:
-          key: deps1-{{ .Branch }}-{{ .Revision }}
+          key: deps2-{{ .Branch }}-{{ .Revision }}
           paths:
             - "venv"
       - run:
@@ -50,7 +50,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps1-{{ .Branch }}-{{ .Revision }}
+          key: deps2-{{ .Branch }}-{{ .Revision }}
       - run:
           name: install deploy dependencies
           command: |
@@ -58,7 +58,7 @@ jobs:
             pip install wheel
             pip install twine
       - save_cache:
-          key: deps1-{{ .Branch }}-{{ .Revision }}
+          key: deps2-{{ .Branch }}-{{ .Revision }}
           paths:
             - "venv"
       - run:
@@ -86,14 +86,14 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps1-{{ .Branch }}-{{ .Revision }}-py2
+          key: deps2-{{ .Branch }}-{{ .Revision }}-py2
       - run:
           command: |
             virtualenv venv
             . venv/bin/activate
             pip install -r dev_tools/requirements.txt
       - save_cache:
-          key: deps1-{{ .Branch }}-{{ .Revision }}-py2
+          key: deps2-{{ .Branch }}-{{ .Revision }}-py2
           paths:
             - "venv"
       - run:

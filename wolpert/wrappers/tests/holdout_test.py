@@ -4,9 +4,9 @@ from sklearn.utils.testing import (assert_equal, assert_array_equal,
                                    assert_almost_equal)
 from sklearn import datasets
 from sklearn.model_selection import ParameterGrid
-from sklearn.linear_model import RidgeClassifier, LinearRegression
+from sklearn.linear_model import (RidgeClassifier, LinearRegression,
+                                  LogisticRegression)
 from sklearn.svm import LinearSVC, LinearSVR
-from sklearn.ensemble import RandomForestClassifier
 
 from wolpert.wrappers import HoldoutStackableTransformer, HoldoutWrapper
 
@@ -48,7 +48,7 @@ def test_regression():
 def test_classification():
     # tests classification with various parameter settings
 
-    testcases = [{'clf': RandomForestClassifier(random_state=RANDOM_SEED),
+    testcases = [{'clf': LogisticRegression(random_state=RANDOM_SEED),
                   'extra_params': {'method': ['auto', 'predict',
                                               'predict_proba']}},
                  {'clf': LinearSVC(random_state=RANDOM_SEED),

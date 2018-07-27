@@ -8,7 +8,7 @@ from sklearn.utils.metaestimators import if_delegate_has_method
 from sklearn.utils.validation import check_memory
 
 from .sklearn_pipeline import (Pipeline, FeatureUnion, _apply_weight,
-                               _name_estimators)
+                               _name_estimators, _stack_results)
 from .wrappers import _choose_wrapper
 
 
@@ -137,7 +137,7 @@ class StackingLayer(FeatureUnion):
 
         StackingLayer._validate_xs(Xs)
 
-        return self._stack_results(Xs), indexes[0]
+        return _stack_results(Xs), indexes[0]
 
     def fit_blend(self, X, y, weight=None, **fit_params):
         """Fit to and transform dataset by calling ``fit_blend`` on each transformer
@@ -174,7 +174,7 @@ class StackingLayer(FeatureUnion):
 
         self._update_transformer_list(transformers)
 
-        return self._stack_results(Xs), indexes[0]
+        return _stack_results(Xs), indexes[0]
 
 
 class StackingPipeline(Pipeline):
@@ -410,7 +410,7 @@ class StackingPipeline(Pipeline):
         return self._final_estimator.fit_blend(Xt, y[indexes], **fit_params)
 
     @if_delegate_has_method(delegate='_final_estimator')
-    def blend(self, X, y=None):
+    def blend(self, X, y=None, **fit_params):
         """Apply blends, and blends with the final estimator
 
         Parameters
@@ -423,6 +423,11 @@ class StackingPipeline(Pipeline):
             Training targets. Must fulfill label requirements for all steps
             of the pipeline.
 
+        **fit_params : dict of string -> object
+            Parameters passed to the ``fit`` method of each step, where
+            each parameter name is prefixed such that parameter ``p`` for step
+            ``s`` has key ``s__p``.
+
         Returns
         -------
         X_transformed, indexes : tuple of (sparse matrix, array-like)
@@ -433,7 +438,7 @@ class StackingPipeline(Pipeline):
         Xt, indexes = X, np.arange(X.shape[0])
         for _, transform in self.steps:
             if transform is not None:
-                Xt, indexes = transform.blend(Xt, y[indexes])
+                Xt, indexes = transform.blend(Xt, y[indexes], **fit_params)
         return Xt, indexes
 
     def score(self, X, y=None, **validation_args):
