@@ -45,5 +45,7 @@ Classes
 
    HoldoutWrapper
    CVWrapper
+   TimeSeriesWrapper
    HoldoutStackableTransformer
    CVStackableTransformer
+   TimeSeriesStackableTransformer

@@ -61,4 +61,48 @@ As you can see from the indexes array, only predictions for rows 1, 2 and 4 were
 Stacking with time series
 -------------------------
 
-TODO
+.. currentmodule:: wolpert
+
+When dealing with time series data, extra care must be taken to avoid leakages. :class:`wrappers.TimeSeriesStackableTransformer` handles part of this issue by making splits that never violate the original ordering of the data or, in other words, indexes on the training set will always be smaller than indexes on the test set for all splits.
+
+It works by walking in an ascending order, growing the training set on each split and predicting on the data after the training set. It's almost the same as `sklearn's TimeSeriesSplit <http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html>`_, but with some knobs that we found more useful. Here's an example:
+
+.. doctest::
+
+   >>> import numpy as np
+   >>> from wolpert.wrappers import TimeSeriesStackableTransformer
+   >>> from sklearn.linear_model import LogisticRegression
+   >>> X = np.asarray([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]])
+   >>> y = np.asarray([0, 1, 0, 1, 1])
+   >>> wrapped_clf = TimeSeriesStackableTransformer(LogisticRegression(random_state=1),
+   ...                                              min_train_size=2)
+   >>> wrapped_clf.fit_blend(X, y)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    (array([[0.15981917, 0.84018083],
+            [0.74725218, 0.25274782]]),
+     array([2, 3]))
+
+These were the splits used to generate the blended data set:
+
+#. Train on indexes ``0`` and ``1``, predict for index ``2``;
+#. Train on indexes ``0``, ``1`` and ``2``, predict for index ``3``.
+
+This resembles the `leave-one-out cross validation <https://en.wikipedia.org/wiki/Cross-validation_(statistics)#Leave-one-out_cross-validation>`_, but :class:`wrappers.TimeSeriesStackableTransformer` provides other options, so make sure to check its documentation. For example, to make a blended dataset that resembles `leave-p-out cross-validation <https://en.wikipedia.org/wiki/Cross-validation_(statistics)#Leave-p-out_cross-validation>`_, all you have to do is change the :paramref:`wrappers.TimeSeriesStackableTransformer.test_set_size`:
+
+.. doctest::
+
+   >>> import numpy as np
+   >>> from wolpert.wrappers import TimeSeriesStackableTransformer
+   >>> from sklearn.linear_model import LogisticRegression
+   >>> X = np.asarray([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]])
+   >>> y = np.asarray([0, 1, 0, 1, 1, 0])
+   >>> wrapped_clf = TimeSeriesStackableTransformer(LogisticRegression(random_state=1),
+   ...                                              min_train_size=2,
+   ...                                              test_set_size=2)
+   >>> wrapped_clf.fit_blend(X, y)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    (array([[0.15981917, 0.84018083],
+            [0.08292124, 0.91707876]]),
+     array([2, 3]))
+
+.. note::
+
+   Notice that in the last example the last sample was dropped from the transformed data. This is because, when the remaining samples are not enough to satisfy the test set size constraint, they are dropped.

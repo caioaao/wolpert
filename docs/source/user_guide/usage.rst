@@ -91,7 +91,7 @@ Now we can build our meta estimator and evaluate it:
 
    Logloss for Meta estimator: 0.22706 (+/- 0.02656)
 
-Notice the score is already better than our best classifier on the first layer. Now let's construct the final model. To do this we'll use the class :cls:`pipeline.StackingPipeline`. This acts like scikit learn's `Pipeline <http://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html>`_: each output from a step is piped to the next step. The difference is that ``StackingPipeline`` will use blending when fitting the models to a dataset.
+Notice the score is already better than our best classifier on the first layer. Now let's construct the final model. To do this we'll use the class :class:`pipeline.StackingPipeline`. This acts like scikit learn's `Pipeline <http://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html>`_: each output from a step is piped to the next step. The difference is that ``StackingPipeline`` will use blending when fitting the models to a dataset.
 
 .. testcode::
 
