@@ -8,12 +8,15 @@
 
 # -- Path setup --------------------------------------------------------------
 
+import os
+import sys
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-import os
-import sys
+sys.path.insert(0, os.path.abspath('sphinxext'))
+
+from github_link import make_linkcode_resolve
 
 sys.path.insert(0, os.path.abspath('../../wolpert'))
 
@@ -48,7 +51,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.linkcode',
     'sphinx_paramlinks',
 ]
 
@@ -183,3 +186,9 @@ todo_include_todos = True
 # TODO: reorganize how we generate docs from source so we can have this as
 # default
 doctest_test_doctest_blocks = ''
+
+# The following is used by sphinx.ext.linkcode to provide links to github
+linkcode_resolve = make_linkcode_resolve('wolpert',
+                                         u'https://github.com/caioaao/wolpert'
+                                         '/blob/{revision}/{package}'
+                                         '/{path}#L{lineno}')

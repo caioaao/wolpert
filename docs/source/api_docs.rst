@@ -1,7 +1,7 @@
 .. _api_docs:
 
-API documentation |version|
-===========================
+API documentation
+=================
 
 :mod:`wolpert.pipeline`: Pipeline classes and utility functions
 ---------------------------------------------------------------
