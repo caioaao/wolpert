@@ -6,7 +6,8 @@ import os
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
-VERSION = "0.1b1"
+import wolpert
+VERSION = wolpert.__version__
 
 
 class VerifyVersionCommand(install):

@@ -14,6 +14,7 @@
 #
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath('../../wolpert'))
 
 
@@ -24,9 +25,10 @@ copyright = '2018, Caio Oliveira'
 author = 'Caio Oliveira'
 
 # The short X.Y version
-version = ''
+import wolpert
+version = wolpert.__version__
 # The full version, including alpha/beta/rc tags
-release = '0.0.5'
+release = wolpert.__version__
 
 
 # -- General configuration ---------------------------------------------------
