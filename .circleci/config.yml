@@ -31,7 +31,7 @@ jobs:
           key: deps2-{{ .Branch }}-{{ .Revision }}-py2
       - run:
           command: |
-            pip install virtualenv
+            sudo pip install virtualenv
             virtualenv -p python2 venv
             . venv/bin/activate
             pip install -r dev_tools/requirements.txt
