@@ -2,6 +2,21 @@ import abc
 
 from sklearn.base import (BaseEstimator, TransformerMixin, MetaEstimatorMixin,
                           clone)
+from sklearn.externals import six
+from sklearn.metrics import (r2_score, median_absolute_error,
+                             mean_absolute_error, mean_squared_error,
+                             mean_squared_log_error, accuracy_score, f1_score,
+                             roc_auc_score, average_precision_score,
+                             precision_score, recall_score, log_loss,
+                             explained_variance_score, brier_score_loss)
+from sklearn.metrics.cluster import (adjusted_rand_score, homogeneity_score,
+                                     completeness_score, v_measure_score,
+                                     mutual_info_score,
+                                     adjusted_mutual_info_score,
+                                     normalized_mutual_info_score,
+                                     fowlkes_mallows_score)
+
+
 
 
 class BaseStackableTransformer(BaseEstimator, MetaEstimatorMixin,
@@ -184,3 +199,54 @@ class BaseWrapper(object):
 
         """
         pass
+
+
+METRICS = dict(explained_variance=explained_variance_score,
+               f1=f1_score, r2=r2_score,
+               median_absolute_error=median_absolute_error,
+               mean_absolute_error=mean_absolute_error,
+               mean_squared_error=mean_squared_error,
+               mean_squared_log_error=mean_squared_log_error,
+               accuracy=accuracy_score, roc_auc=roc_auc_score,
+               precision=precision_score,
+               recall=recall_score,
+               average_precision=average_precision_score,
+               log_loss=log_loss,
+               brier_score_loss=brier_score_loss,
+               # Cluster metrics that use supervised evaluation
+               adjusted_rand_score=adjusted_rand_score,
+               homogeneity_score=homogeneity_score,
+               completeness_score=completeness_score,
+               v_measure_score=v_measure_score,
+               mutual_info_score=mutual_info_score,
+               adjusted_mutual_info_score=adjusted_mutual_info_score,
+               normalized_mutual_info_score=normalized_mutual_info_score,
+               fowlkes_mallows_score=fowlkes_mallows_score)
+
+
+def _scoring_fn(scoring):
+    if isinstance(scoring, six.string_types):
+        scoring = METRICS[scoring]
+    return scoring
+
+
+def _scoring_dict(scoring, idx=0):
+    name = "score" if idx == 0 else "score%d" % idx
+    return {name: _scoring_fn(scoring)}
+
+
+def _scores(ytrue, ypreds, scoring):
+    if isinstance(scoring, dict):
+        scoring = {name: _scoring_fn(scoring)
+                   for name, scoring in scoring.items()}
+    elif isinstance(scoring, six.string_types) or callable(scoring):
+        scoring = _scoring_dict(scoring, 0)
+    else:
+        dicts = [_scoring_dict(s, i) for i, s in
+                 enumerate(scoring)]
+        scoring = {}
+        for d in dicts:
+            scoring.update(d)
+
+    return {name: score(ytrue, ypreds)
+            for name, score in scoring.items()}
