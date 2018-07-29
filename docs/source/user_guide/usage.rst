@@ -66,7 +66,7 @@ The easiest way to do so is using the helper function :func:`pipeline.make_stack
 
 .. testcode::
 
-   from wolpert.pipeline import make_stack_layer
+   from wolpert import make_stack_layer
 
    layer0 = make_stack_layer(knn, rf, svc, et, blending_wrapper='cv')
 
@@ -95,7 +95,7 @@ Notice the score is already better than our best classifier on the first layer. 
 
 .. testcode::
 
-   from wolpert.pipeline import StackingPipeline
+   from wolpert import StackingPipeline
 
    stacked_clf = StackingPipeline([("l0", layer0), ("meta", meta)])
 
@@ -176,7 +176,7 @@ We can access all attributes on all estimators just like in a regular scikit lea
 
 .. note::
 
-   Remember that this score should be compared to the one from the :meth:`score <wolpert.pipeline.StackingPipeline.score>` method.
+   Remember that this score should be compared to the one from the :meth:`score <wolpert.StackingPipeline.score>` method.
 
 Wrappers API
 ------------
@@ -189,7 +189,7 @@ Up until now we relied on the default arguments for wrapping our models. To have
 
    cv_wrapper = CVWrapper(cv=10, n_cv_jobs=-1)
 
-The main method for this class is :meth:`wrap_estimator <wolpert.wrappers.CVWrapper.wrap_estimator>`, that receives an estimator and returns it wrapped with a class that exposes the methods ``blend`` and ``fit_blend``. We can also pass it to the :paramref:`wolpert.pipeline.make_stack_layer.blending_wrapper` argument and it will be used to wrap all the estimators on the layer:
+The main method for this class is :meth:`wrap_estimator <wolpert.wrappers.CVWrapper.wrap_estimator>`, that receives an estimator and returns it wrapped with a class that exposes the methods ``blend`` and ``fit_blend``. We can also pass it to the :paramref:`wolpert.make_stack_layer.blending_wrapper` argument and it will be used to wrap all the estimators on the layer:
 
 .. testcode::
 

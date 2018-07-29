@@ -27,7 +27,7 @@ First we need the layers of our model. The simplest way is using the helper func
      from sklearn.svm import SVC
      from sklearn.neighbors import KNeighborsClassifier
      from sklearn.linear_model import LogisticRegression
-     from wolpert.pipeline import make_stack_layer, StackingPipeline
+     from wolpert import make_stack_layer, StackingPipeline
 
      layer0 = make_stack_layer(SVC(), KNeighborsClassifier(),
                                RandomForestClassifier(),
