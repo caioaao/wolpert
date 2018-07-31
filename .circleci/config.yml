@@ -35,7 +35,6 @@ jobs:
             virtualenv -p python2 venv
             . venv/bin/activate
             pip install -r dev_tools/requirements.txt
-            pip install -r dev_tools/requirements_py2.txt
       - save_cache:
           key: deps2-{{ .Branch }}-{{ .Revision }}-py2
           paths:

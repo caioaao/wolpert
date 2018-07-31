@@ -6,7 +6,7 @@ from wolpert.wrappers import (CVStackableTransformer,
 from sklearn.linear_model import LinearRegression
 from sklearn.utils.testing import assert_almost_equal
 
-from unittest.mock import patch
+from mock import patch
 
 
 CONSTRUCTORS = [CVStackableTransformer, HoldoutStackableTransformer,
