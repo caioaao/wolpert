@@ -14,7 +14,8 @@ CONSTRUCTORS = [CVStackableTransformer, HoldoutStackableTransformer,
 def test_scoring():
     scores = [[{'s1': 31.24, 's2': 731.9532}],
               [{'s1': 31.24, 's2': 975.9376}],
-              [{'s1': 20., 's2': 400.}]]
+              [{'s1': 20., 's2': 400.},
+               {'s1': 31.24, 's2': 975.9376}]]
 
     X = np.asarray([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
     y = np.asarray([12., -8., 3.24])
@@ -24,7 +25,7 @@ def test_scoring():
                           method='predict',
                           scoring={'s1': 'median_absolute_error',
                                    's2': 'mean_squared_error'})
-        reg.fit_blend(X, y)
+        reg.blend(X, y)
         for i, score in enumerate(reg.scores_):
             assert_almost_equal(score['s1'], expected_scores[i]['s1'])
             assert_almost_equal(score['s2'], expected_scores[i]['s2'])
