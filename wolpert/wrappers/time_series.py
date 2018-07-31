@@ -321,7 +321,7 @@ class TimeSeriesStackableTransformer(BaseStackableTransformer):
                                          method=self._estimator_function_name)
         if self.scoring:
             self.scores_ = []
-            for _, test_index in list(self._splitter()):
+            for _, test_index in ts.split(X, y):
                 self.scores_.append(
                     _scores(y[test_index],
                             Xt[test_index - self.min_train_size],
