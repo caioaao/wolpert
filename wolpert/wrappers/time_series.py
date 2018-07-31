@@ -11,6 +11,7 @@ from sklearn.externals.joblib import Parallel, delayed
 
 
 from .base import BaseStackableTransformer, BaseWrapper, _scores
+from . import base
 
 
 class TimeSeriesStackableTransformer(BaseStackableTransformer):
@@ -107,6 +108,8 @@ class TimeSeriesStackableTransformer(BaseStackableTransformer):
                     _scores(y[test_index],
                             Xt[test_index - self.min_train_size],
                             scoring=self.scoring))
+        if self.verbose:
+            base._print_scores(self, self.scores_)
         self.estimator_ = None
 
         if Xt.ndim == 1:

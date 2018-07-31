@@ -7,9 +7,9 @@ import numpy as np
 
 from sklearn.base import clone
 from sklearn.model_selection import cross_val_predict
-from sklearn.metrics.scorer import _check_multimetric_scoring
 
 from .base import BaseStackableTransformer, BaseWrapper, _scores
+from . import base
 
 
 class CVStackableTransformer(BaseStackableTransformer):
@@ -115,6 +115,8 @@ class CVStackableTransformer(BaseStackableTransformer):
 
         if self.scoring:
             self.scores_ = [_scores(y, preds, scoring=self.scoring)]
+        if self.verbose:
+            base._print_scores(self, self.scores_)
 
         return preds, np.arange(y.shape[0])
 

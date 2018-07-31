@@ -7,6 +7,7 @@ from sklearn.base import clone
 from sklearn.model_selection import ShuffleSplit
 
 from .base import BaseStackableTransformer, BaseWrapper, _scores
+from . import base
 
 
 def _validate_random_state(random_state):
@@ -104,6 +105,8 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
 
         if self.scoring:
             self.scores_ = [_scores(y_holdout, preds, scoring=self.scoring)]
+        if self.verbose:
+            base._print_scores(self, self.scores_)
 
         if preds.ndim == 1:
             preds = preds.reshape(-1, 1)

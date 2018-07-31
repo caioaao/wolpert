@@ -263,3 +263,7 @@ def _scores(ytrue, ypreds, scoring):
 
     return {name: score(ytrue, ypreds)
             for name, score in scoring.items()}
+
+
+def _print_scores(estimator, scores):
+    print("Scores for %s: %s" % (estimator, scores))
