@@ -9,7 +9,7 @@ from sklearn.base import clone
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics.scorer import _check_multimetric_scoring
 
-from .base import BaseStackableTransformer, BaseWrapper
+from .base import BaseStackableTransformer, BaseWrapper, _scores
 
 
 class CVStackableTransformer(BaseStackableTransformer):
@@ -70,7 +70,8 @@ class CVStackableTransformer(BaseStackableTransformer):
     ...                        method='predict_proba')
     ...     # doctest: +NORMALIZE_WHITESPACE
     CVStackableTransformer(cv=5, estimator=GaussianNB(priors=None),
-                           method='predict_proba', n_cv_jobs=1)
+                           method='predict_proba', n_cv_jobs=1,
+                           scoring=None)
 
     """
     def __init__(self, estimator, method='auto', scoring=None,
@@ -110,7 +111,7 @@ class CVStackableTransformer(BaseStackableTransformer):
             preds = preds.reshape(-1, 1)
 
         if self.scoring:
-            scorers, _ = _check_multimetric_scoring(estimator, scoring=scoring)
+            self.scores_ = [_scores(y, preds, scoring=self.scoring)]
 
         return preds, np.arange(y.shape[0])
 
@@ -177,8 +178,6 @@ class CVWrapper(BaseWrapper):
         Number of jobs to be passed to ``cross_val_predict`` during
         ``blend``.
 
-    Examples
-    --------
     """
 
     def __init__(self, default_method='auto', default_scoring=None, cv=3, n_cv_jobs=1):

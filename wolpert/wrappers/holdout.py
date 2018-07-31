@@ -6,7 +6,7 @@
 from sklearn.base import clone
 from sklearn.model_selection import ShuffleSplit
 
-from .base import BaseStackableTransformer, BaseWrapper
+from .base import BaseStackableTransformer, BaseWrapper, _scores
 
 
 def _validate_random_state(random_state):
@@ -67,7 +67,8 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
                                 fit_to_all_data=False,
                                 holdout_size=0.2,
                                 method='predict_proba',
-                                random_state=42)
+                                random_state=42,
+                                scoring=None)
 
     """
     def __init__(self, estimator, method='auto', scoring=None, holdout_size=.1,
@@ -89,12 +90,16 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
                 holdout_indexes)
 
     def _fit_blend(self, X, y, fit_to_all_data, **fit_params):
-        X_train, X_holdout, y_train, y_holdout, holdout_indexes = self._split_data(X, y)
+        X_train, X_holdout, y_train, y_holdout, holdout_indexes = \
+            self._split_data(X, y)
 
         self.estimator_ = clone(self.estimator)
         self.estimator_.fit(X_train, y_train, **fit_params)
 
         preds = self._estimator_function(X_holdout)
+
+        if self.scoring:
+            self.scores_ = [_scores(y_holdout, preds, scoring=self.scoring)]
 
         if preds.ndim == 1:
             preds = preds.reshape(-1, 1)
@@ -223,8 +228,6 @@ class HoldoutWrapper(BaseWrapper):
         fits only to the non-holdout set. This only affects the ``fit`` and
         ``fit_blend`` steps.
 
-    Examples
-    --------
     """
 
     def __init__(self, default_method='auto', default_scoring=None,

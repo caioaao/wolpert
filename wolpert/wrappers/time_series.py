@@ -7,10 +7,10 @@ from sklearn.model_selection._validation import _fit_and_predict
 from sklearn.model_selection._split import check_cv
 from sklearn.base import is_classifier, clone
 from sklearn.preprocessing import LabelEncoder
-from sklearn.externals.joblib import Parallel, delayed, logger
+from sklearn.externals.joblib import Parallel, delayed
 
 
-from .base import BaseStackableTransformer, BaseWrapper
+from .base import BaseStackableTransformer, BaseWrapper, _scores
 
 
 def _cross_val_predict(estimator, X, y=None, groups=None, cv=None, n_jobs=1,
@@ -18,8 +18,8 @@ def _cross_val_predict(estimator, X, y=None, groups=None, cv=None, n_jobs=1,
                        method='predict'):
     """Generate cross-validated estimates for each input data point
 
-    Copied from scikit learn, with the only difference that it doesn't check for
-    permutations.
+    Copied from scikit learn, with the only difference that it doesn't check
+    for permutations.
 
     Parameters
     ----------
@@ -142,6 +142,8 @@ def _cross_val_predict(estimator, X, y=None, groups=None, cv=None, n_jobs=1,
         predictions = sp.vstack(predictions, format=predictions[0].format)
     else:
         predictions = np.concatenate(predictions)
+    predictions = predictions[np.argsort(test_indices)]
+    test_indices = np.sort(test_indices)
     return predictions, test_indices
 
 
@@ -313,9 +315,17 @@ class TimeSeriesStackableTransformer(BaseStackableTransformer):
         ts = self._splitter()
 
         self.estimator_ = clone(self.estimator)
+
         Xt, indexes = _cross_val_predict(self.estimator_, X, y, cv=ts,
                                          n_jobs=self.n_cv_jobs,
                                          method=self._estimator_function_name)
+        if self.scoring:
+            self.scores_ = []
+            for _, test_index in list(self._splitter()):
+                self.scores_.append(
+                    _scores(y[test_index],
+                            Xt[test_index - self.min_train_size],
+                            scoring=self.scoring))
         self.estimator_ = None
 
         if Xt.ndim == 1:

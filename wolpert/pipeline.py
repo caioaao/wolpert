@@ -78,12 +78,14 @@ class StackingLayer(FeatureUnion):
                            CVStackableTransformer(cv=3,
                                                   estimator=GaussianNB(...),
                                                   method='predict',
-                                                  n_cv_jobs=1)),
+                                                  n_cv_jobs=1,
+                                                  scoring=None)),
                           ('svr',
                            CVStackableTransformer(cv=3,
                                                   estimator=SVR(...),
                                                   method='predict',
-                                                  n_cv_jobs=1))],
+                                                  n_cv_jobs=1,
+                                                  scoring=None))],
         transformer_weights=None)
     """
     def _validate_one_transformer(self, t):
@@ -541,12 +543,14 @@ def make_stack_layer(*estimators, **kwargs):
                            CVStackableTransformer(cv=3,
                                                   estimator=GaussianNB(...),
                                                   method='auto',
-                                                  n_cv_jobs=1)),
+                                                  n_cv_jobs=1,
+                                                  scoring=None)),
                           ('svr',
                            CVStackableTransformer(cv=3,
                                                   estimator=SVR(...),
                                                   method='auto',
-                                                  n_cv_jobs=1))],
+                                                  n_cv_jobs=1,
+                                                  scoring=None))],
         transformer_weights=None)
 
     Returns
