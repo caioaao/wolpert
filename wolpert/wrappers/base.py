@@ -273,16 +273,16 @@ def _dict_to_str(d):
 
 
 def _wrap_text(t, linewidth, subsequent_indent_spaces):
-    return '\n'.join(
-        textwrap.wrap(t, width=linewidth, drop_whitespace=True,
-                      subsequent_indent=' ' * subsequent_indent_spaces))
+    return textwrap.fill(
+        t, width=linewidth, drop_whitespace=True,
+        subsequent_indent=' ' * subsequent_indent_spaces)
 
 
 def _print_scores(estimator, scores):
     linewidth = np.get_printoptions()['linewidth']
 
     params = estimator.get_params()
-    params.pop('estimator')
+    params['estimator'] = str(type(params['estimator']))
     scores_lines = [_wrap_text(" - scores %d: %s" % (i, _dict_to_str(score)),
                                linewidth, 4)
                     for i, score in enumerate(scores)]
