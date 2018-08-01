@@ -246,7 +246,8 @@ Each metric may be a string (for the builtin metrics) or a function that receive
        LinearRegression(), scoring={'mae': 'mean_absolute_error',
                                     'mse': mean_squared_error})
    cvs.blend(X, y)
-   print(cvs.scores_)
+   import pprint
+   pprint.pprint(cvs.scores_)
 
 
 .. testoutput::
