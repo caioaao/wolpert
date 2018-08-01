@@ -10,6 +10,7 @@ jobs:
           key: deps2-{{ .Branch }}-{{ .Revision }}
       - run:
           command: |
+            sudo apt-get install -y python-dev
             python3 -m venv venv
             . venv/bin/activate
             pip install -r dev_tools/requirements.txt
@@ -31,6 +32,7 @@ jobs:
           key: deps2-{{ .Branch }}-{{ .Revision }}-py2
       - run:
           command: |
+            sudo apt-get install -y python2.7-dev
             sudo pip install virtualenv
             virtualenv -p python2 venv
             . venv/bin/activate
@@ -53,6 +55,7 @@ jobs:
           key: deps2-{{ .Branch }}-{{ .Revision }}
       - run:
           command: |
+            sudo apt-get install -y python-dev
             . venv/bin/activate
             pip install -r docs/requirements.txt
             pip install .
@@ -76,6 +79,7 @@ jobs:
       - run:
           name: install deploy dependencies
           command: |
+            sudo apt-get install -y python-dev
             . venv/bin/activate
             pip install wheel
             pip install twine
