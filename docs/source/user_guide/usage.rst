@@ -250,10 +250,11 @@ Each metric may be a string (for the builtin metrics) or a function that receive
 
 
 .. testoutput::
+   :options: +ELLIPSIS
 
-   [{'score': 1.3809523809523807}]
-   [{'score': 1.3809523809523807, 'score1': 2.2947845804988654}]
-   [{'mae': 1.3809523809523807, 'mse': 2.2947845804988654}]
+   [{'score': 1.380...}]
+   [{'score': 1.380..., 'score1': 2.294...}]
+   [{'mae': 1.380..., 'mse': 2.294...}]
 
 We can also use the ``verbose`` parameter to keep track of the models performances. It will print the results to stdout.
 
@@ -264,8 +265,9 @@ We can also use the ``verbose`` parameter to keep track of the models performanc
    cvs.blend(X, y)
 
 .. testoutput::
+   :options: +ELLIPSIS
 
    [BLEND] cv=3, estimator__copy_X=True, estimator__fit_intercept=True,
-            estimator__n_jobs=1, estimator__normalize=False, method=auto,
-            n_cv_jobs=1, scoring=mean_absolute_error, verbose=True
-     - scores 0: score=1.3809523809523807
+           estimator__n_jobs=1, estimator__normalize=False, method=auto,
+           n_cv_jobs=1, scoring=mean_absolute_error, verbose=True
+    - scores 0: score=1.380...
