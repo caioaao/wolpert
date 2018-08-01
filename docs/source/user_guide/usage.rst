@@ -267,7 +267,9 @@ We can also use the ``verbose`` parameter to keep track of the models performanc
 .. testoutput::
    :options: +ELLIPSIS
 
-   [BLEND] cv=3, estimator__copy_X=True, estimator__fit_intercept=True,
+   [BLEND] cv=3, estimator=<class
+           'sklearn.linear_model.base.LinearRegression'>,
+           estimator__copy_X=True, estimator__fit_intercept=True,
            estimator__n_jobs=1, estimator__normalize=False, method=auto,
            n_cv_jobs=1, scoring=mean_absolute_error, verbose=True
     - scores 0: score=1.380...
