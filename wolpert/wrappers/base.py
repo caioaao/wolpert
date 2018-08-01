@@ -1,4 +1,7 @@
 import abc
+import textwrap
+
+import numpy as np
 
 from sklearn.base import (BaseEstimator, TransformerMixin, MetaEstimatorMixin,
                           clone)
@@ -265,5 +268,25 @@ def _scores(ytrue, ypreds, scoring):
             for name, score in scoring.items()}
 
 
+def _dict_to_str(d):
+    return ', '.join(["%s=%s" % (k, v) for k, v in d.items()])
+
+
+def _wrap_text(t, linewidth, subsequent_indent_spaces):
+    return '\n'.join(
+        textwrap.wrap(t, width=linewidth, drop_whitespace=True,
+                      subsequent_indent=' ' * subsequent_indent_spaces))
+
+
 def _print_scores(estimator, scores):
-    print("Scores for %s: %s" % (estimator, scores))
+    linewidth = np.get_printoptions()['linewidth']
+
+    params = estimator.get_params()
+    params.pop('estimator')
+    scores_lines = [_wrap_text(" - scores %d: %s" % (i, _dict_to_str(score)),
+                               linewidth, 4)
+                    for i, score in enumerate(scores)]
+
+    print(_wrap_text("[BLEND] %s" % _dict_to_str(params),
+                     linewidth, 8))
+    print('\n'.join(scores_lines))
