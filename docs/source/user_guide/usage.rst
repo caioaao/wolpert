@@ -207,3 +207,67 @@ Just out of curiosity, here's the model performance:
 .. testoutput::
 
    Logloss for Meta classificator with CV=10 on first layer: 0.22241 (+/- 0.03292)
+
+Inner estimators performance
+----------------------------
+
+Sometimes it's useful to keep track of the performance of each estimator inside an ensemble. To do so, every wrapper exposes a parameter called ``scoring``. It works simmilarly to scikit learn's `scoring parameter <http://scikit-learn.org/stable/modules/cross_validation.html#computing-cross-validated-metrics>`_, but it uses the metrics functions directly instead of a scorer. We do so because we want to avoid retraining models inside an ensemble, as it's already an expensive computation as it is.
+
+When ``scoring`` is set, everytime a blend happens, it will store the scoring results in the ``scores_`` parameter. It's a list of dicts where each key is the name of the score used. If not supplied, the name will be ``score`` with an integer suffix.
+
+Each metric may be a string (for the builtin metrics) or a function that receives the true labels and the predicted labels and outputs a single floating number, denoting the score for this pair. The ``scoring`` parameters accepts a single metric, a list of metrics or a dict where the key is the metric name and the value is the metric itself.
+
+.. testcode::
+
+   import numpy as np
+
+   from wolpert.wrappers import CVStackableTransformer
+   from sklearn.linear_model import LinearRegression
+   from sklearn.metrics import mean_squared_error
+
+   X = np.asarray([[1, 2], [3, 4], [5, 6], [7, 8]])
+   y = np.asarray([0, 1, 0, 1])
+
+   # With a single metric
+   cvs = CVStackableTransformer(
+       LinearRegression(), scoring='mean_absolute_error')
+   cvs.blend(X, y)
+   print(cvs.scores_)
+
+   # a list of metrics
+   cvs = CVStackableTransformer(
+       LinearRegression(), scoring=['mean_absolute_error',
+                                    mean_squared_error])
+   cvs.blend(X, y)
+   print(cvs.scores_)
+
+   # a dict of metrics
+   cvs = CVStackableTransformer(
+       LinearRegression(), scoring={'mae': 'mean_absolute_error',
+                                    'mse': mean_squared_error})
+   cvs.blend(X, y)
+   print(cvs.scores_)
+
+
+.. testoutput::
+   :options: +ELLIPSIS
+
+   [{'score': 1.380...}]
+   [{'score': 1.380..., 'score1': 2.294...}]
+   [{'mae': 1.380..., 'mse': 2.294...}]
+
+We can also use the ``verbose`` parameter to keep track of the models performances. It will print the results to stdout.
+
+.. testcode::
+
+   cvs = CVStackableTransformer(
+       LinearRegression(), scoring='mean_absolute_error', verbose=True)
+   cvs.blend(X, y)
+
+.. testoutput::
+   :options: +ELLIPSIS
+
+   [BLEND] cv=3, estimator__copy_X=True, estimator__fit_intercept=True,
+           estimator__n_jobs=1, estimator__normalize=False, method=auto,
+           n_cv_jobs=1, scoring=mean_absolute_error, verbose=True
+    - scores 0: score=1.380...

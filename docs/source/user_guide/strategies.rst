@@ -78,8 +78,9 @@ It works by walking in an ascending order, growing the training set on each spli
    ...                                              min_train_size=2)
    >>> wrapped_clf.fit_blend(X, y)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     (array([[0.15981917, 0.84018083],
-            [0.74725218, 0.25274782]]),
-     array([2, 3]))
+            [0.74725218, 0.25274782],
+            [0.26388084, 0.73611916]]),
+     array([2, 3, 4]))
 
 These were the splits used to generate the blended data set:
 
@@ -100,8 +101,10 @@ This resembles the `leave-one-out cross validation <https://en.wikipedia.org/wik
    ...                                              test_set_size=2)
    >>> wrapped_clf.fit_blend(X, y)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     (array([[0.15981917, 0.84018083],
-            [0.08292124, 0.91707876]]),
-     array([2, 3]))
+            [0.08292124, 0.91707876],
+            [0.26388084, 0.73611916],
+            [0.20981736, 0.79018264]]),
+     array([2, 3, 4, 5]))
 
 .. note::
 

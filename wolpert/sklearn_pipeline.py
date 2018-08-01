@@ -56,6 +56,7 @@ def _stack_results(Xs):
         Xs = np.hstack(Xs)
     return Xs
 
+
 class Pipeline(_BaseComposition):
     """Pipeline of transforms with a final estimator.
 

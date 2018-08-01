@@ -14,10 +14,12 @@ from wolpert.wrappers.time_series import (TimeSeriesSplit, TimeSeriesWrapper,
 from .utils import check_estimator
 
 
-def assert_splits_equal(a, b):
-    for (train_a, test_a), (train_b, test_b) in zip(a, b):
-        assert_array_equal(train_a, train_b)
-        assert_array_equal(test_a, test_b)
+def assert_splits_equal(result, expected):
+    result = list(result)
+    for i, (train_expected, test_expected) in enumerate(expected):
+        train_result, test_result = result[i]
+        assert_array_equal(train_result, train_expected)
+        assert_array_equal(test_result, test_expected)
 
 
 def test_split_class():
