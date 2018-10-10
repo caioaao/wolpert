@@ -231,21 +231,21 @@ Each metric may be a string (for the builtin metrics) or a function that receive
    # With a single metric
    cvs = CVStackableTransformer(
        LinearRegression(), scoring='mean_absolute_error')
-   cvs.blend(X, y)
+   cvs.fit_blend(X, y)
    print(cvs.scores_)
 
    # a list of metrics
    cvs = CVStackableTransformer(
        LinearRegression(), scoring=['mean_absolute_error',
                                     mean_squared_error])
-   cvs.blend(X, y)
+   cvs.fit_blend(X, y)
    print(cvs.scores_)
 
    # a dict of metrics
    cvs = CVStackableTransformer(
        LinearRegression(), scoring={'mae': 'mean_absolute_error',
                                     'mse': mean_squared_error})
-   cvs.blend(X, y)
+   cvs.fit_blend(X, y)
    import pprint
    pprint.pprint(cvs.scores_)
 
@@ -263,7 +263,7 @@ We can also use the ``verbose`` parameter to keep track of the models performanc
 
    cvs = CVStackableTransformer(
        LinearRegression(), scoring='mean_absolute_error', verbose=True)
-   cvs.blend(X, y)
+   cvs.fit_blend(X, y)
 
 .. testoutput::
    :options: +ELLIPSIS
