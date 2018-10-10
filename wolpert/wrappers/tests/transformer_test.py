@@ -33,11 +33,10 @@ def _check_scores(results, expected):
 
 
 def test_scoring():
-
     for Constructor, expected_scores in zip(CONSTRUCTORS, EXPECTED_SCORES):
         # checks for scoring
         reg = Constructor(REGRESSOR, method='predict', scoring=SCORING_PARAM)
-        reg.blend(X, y)
+        reg.fit_blend(X, y)
         _check_scores(reg.scores_, expected_scores)
 
 
@@ -46,7 +45,16 @@ def test_verbosity():
         reg = Constructor(REGRESSOR, method='predict', scoring=SCORING_PARAM,
                           verbose=True)
         with patch('wolpert.wrappers.base._print_scores') as mocked_print:
-            reg.blend(X, y)
+            reg.fit_blend(X, y)
             (called_reg, resulting_scores), _  = mocked_print.call_args
             assert(reg == called_reg)
             _check_scores(resulting_scores, expected_scores)
+
+
+def test_blend_after_fit():
+    for Constructor in CONSTRUCTORS:
+        reg = Constructor(REGRESSOR, method='predict')
+        reg.fit(X, y)
+        reg.blend(X, y)
+        reg.transform(X)
+

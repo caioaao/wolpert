@@ -10,7 +10,8 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.externals.joblib import Parallel, delayed
 
 
-from .base import BaseStackableTransformer, BaseWrapper, _scores
+from .base import (BaseStackableTransformer, BaseWrapper, _scores,
+                   _estimator_method_name)
 from . import base
 
 
@@ -96,21 +97,11 @@ class TimeSeriesStackableTransformer(BaseStackableTransformer):
         """
         ts = self._splitter()
 
-        self.estimator_ = clone(self.estimator)
-
-        Xt, indexes = _cross_val_predict(self.estimator_, X, y, cv=ts,
+        estimator = clone(self.estimator)
+        method = _estimator_method_name(estimator, self.method)
+        Xt, indexes = _cross_val_predict(estimator, X, y, cv=ts,
                                          n_jobs=self.n_cv_jobs,
-                                         method=self._estimator_function_name)
-        if self.scoring:
-            self.scores_ = []
-            for _, test_index in ts.split(X, y):
-                self.scores_.append(
-                    _scores(y[test_index],
-                            Xt[test_index - self.min_train_size],
-                            scoring=self.scoring))
-        if self.verbose:
-            base._print_scores(self, self.scores_)
-        self.estimator_ = None
+                                         method=method)
 
         if Xt.ndim == 1:
             Xt = Xt.reshape(-1, 1)
@@ -137,9 +128,20 @@ class TimeSeriesStackableTransformer(BaseStackableTransformer):
             `X_transformed` is the transformed dataset.
             `indexes` is the indexes of the transformed data on the input.
         """
-        blend_results = self.blend(X, y, **fit_params)
+        Xt, indexes = self.blend(X, y, **fit_params)
+
+        if self.scoring:
+            ts = self._splitter()
+            self.scores_ = []
+            for _, test_index in ts.split(X, y):
+                self.scores_.append(
+                    _scores(y[test_index],
+                            Xt[test_index - self.min_train_size],
+                            scoring=self.scoring))
+        if self.verbose:
+            base._print_scores(self, self.scores_)
         self.fit(X, y, **fit_params)
-        return blend_results
+        return Xt, indexes
 
 
 class TimeSeriesWrapper(BaseWrapper):

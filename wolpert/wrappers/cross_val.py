@@ -8,7 +8,8 @@ import numpy as np
 from sklearn.base import clone
 from sklearn.model_selection import cross_val_predict
 
-from .base import BaseStackableTransformer, BaseWrapper, _scores
+from .base import (BaseStackableTransformer, BaseWrapper, _scores,
+                   _estimator_method_name)
 from . import base
 
 
@@ -104,19 +105,15 @@ class CVStackableTransformer(BaseStackableTransformer):
             `X_transformed` is the transformed dataset.
             `indexes` is the indexes of the transformed data on the input.
         """
-        self.estimator_ = clone(self.estimator)
-        preds = cross_val_predict(self.estimator_, X, y, cv=self.cv,
-                                  method=self._estimator_function_name,
-                                  n_jobs=self.n_cv_jobs, fit_params=fit_params)
-        self.estimator_ = None
+        estimator = clone(self.estimator)
+        method = _estimator_method_name(estimator, self.method)
+
+        preds = cross_val_predict(estimator, X, y, cv=self.cv,
+                                  method=method, n_jobs=self.n_cv_jobs,
+                                  fit_params=fit_params)
 
         if preds.ndim == 1:
             preds = preds.reshape(-1, 1)
-
-        if self.scoring:
-            self.scores_ = [_scores(y, preds, scoring=self.scoring)]
-        if self.verbose:
-            base._print_scores(self, self.scores_)
 
         return preds, np.arange(y.shape[0])
 
@@ -141,9 +138,14 @@ class CVStackableTransformer(BaseStackableTransformer):
             `X_transformed` is the transformed dataset.
             `indexes` is the indexes of the transformed data on the input.
         """
-        blend_results = self.blend(X, y, **fit_params)
+        preds, indexes = self.blend(X, y, **fit_params)
+        if self.scoring:
+            self.scores_ = [_scores(y, preds, scoring=self.scoring)]
+        if self.verbose:
+            base._print_scores(self, self.scores_)
+
         self.fit(X, y, **fit_params)
-        return blend_results
+        return preds, indexes
 
 
 class CVWrapper(BaseWrapper):

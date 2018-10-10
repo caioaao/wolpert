@@ -6,7 +6,7 @@
 from sklearn.base import clone
 from sklearn.model_selection import ShuffleSplit
 
-from .base import BaseStackableTransformer, BaseWrapper, _scores
+from .base import BaseStackableTransformer, BaseWrapper, _scores, _estimator_method
 from . import base
 
 
@@ -94,29 +94,28 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
                 y[train_indexes], y[holdout_indexes],
                 holdout_indexes)
 
-    def _fit_blend(self, X, y, fit_to_all_data, **fit_params):
+    def _fit_blend(self, estimator, X, y, fit_to_all_data, scoring, verbose,
+                   **fit_params):
         X_train, X_holdout, y_train, y_holdout, holdout_indexes = \
             self._split_data(X, y)
 
-        self.estimator_ = clone(self.estimator)
-        self.estimator_.fit(X_train, y_train, **fit_params)
+        estimator = clone(estimator)
+        estimator.fit(X_train, y_train, **fit_params)
 
-        preds = self._estimator_function(X_holdout)
+        preds = _estimator_method(estimator, self.method)(X_holdout)
 
-        if self.scoring:
-            self.scores_ = [_scores(y_holdout, preds, scoring=self.scoring)]
-        if self.verbose:
+        if scoring:
+            self.scores_ = [_scores(y_holdout, preds, scoring=scoring)]
+        if verbose:
             base._print_scores(self, self.scores_)
 
         if preds.ndim == 1:
             preds = preds.reshape(-1, 1)
 
         if fit_to_all_data:
-            fitted_estimator = self.estimator_.fit(X, y, **fit_params)
+            fitted_estimator = estimator.fit(X, y, **fit_params)
         else:
-            fitted_estimator = self.estimator_
-
-        self.estimator_ = None
+            fitted_estimator = estimator
 
         return fitted_estimator, preds, holdout_indexes
 
@@ -140,7 +139,8 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
             `X_transformed` is the transformed dataset.
             `indexes` is the indexes of the transformed data on the input.
         """
-        _, preds, holdout_indexes = self._fit_blend(X, y, False, **fit_params)
+        _, preds, holdout_indexes = self._fit_blend(
+            self.estimator, X, y, False, False, False, **fit_params)
         return preds, holdout_indexes
 
     def fit(self, X, y, **fit_params):
@@ -200,7 +200,8 @@ class HoldoutStackableTransformer(BaseStackableTransformer):
             `indexes` is the indexes of the transformed data on the input.
         """
         self.estimator_, preds, holdout_indexes = self._fit_blend(
-            X, y, self.fit_to_all_data, **fit_params)
+            self.estimator, X, y, self.fit_to_all_data, self.scoring,
+            self.verbose, **fit_params)
         return preds, holdout_indexes
 
 
