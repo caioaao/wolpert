@@ -20,6 +20,24 @@ from sklearn.metrics.cluster import (adjusted_rand_score, homogeneity_score,
                                      fowlkes_mallows_score)
 
 
+def _estimator_method_name(estimator, method_attr):
+    if method_attr == 'auto':
+        if getattr(estimator, 'predict_proba', None):
+            method = 'predict_proba'
+        elif getattr(estimator, 'decision_function', None):
+            method = 'decision_function'
+        else:
+            method = 'predict'
+    else:
+        method = method_attr
+
+    return method
+
+
+def _estimator_method(estimator, method_attr):
+    return getattr(estimator, _estimator_method_name(estimator, method_attr))
+
+
 class BaseStackableTransformer(BaseEstimator, MetaEstimatorMixin,
                                TransformerMixin):
     """Base class for wrappers. Shouldn't be used directly, but inherited by
@@ -54,22 +72,12 @@ class BaseStackableTransformer(BaseEstimator, MetaEstimatorMixin,
         self.verbose = verbose
 
     @property
-    def _estimator_function_name(self):
-        if self.method == 'auto':
-            if getattr(self.estimator_, 'predict_proba', None):
-                method = 'predict_proba'
-            elif getattr(self.estimator_, 'decision_function', None):
-                method = 'decision_function'
-            else:
-                method = 'predict'
-        else:
-            method = self.method
-
-        return method
+    def _estimator_method_name(self):
+        return _estimator_method_name(self.estimator_, self.method)
 
     @property
-    def _estimator_function(self):
-        return getattr(self.estimator_, self._estimator_function_name)
+    def _estimator_method(self):
+        return getattr(self.estimator_, self._estimator_method_name)
 
     @abc.abstractmethod
     def blend(self, X, y, **fit_params):
@@ -156,7 +164,7 @@ class BaseStackableTransformer(BaseEstimator, MetaEstimatorMixin,
             Transformed dataset.
 
         """
-        preds = self._estimator_function(*args, **kwargs)
+        preds = self._estimator_method(*args, **kwargs)
 
         if preds.ndim == 1:
             preds = preds.reshape(-1, 1)
