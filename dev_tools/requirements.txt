@@ -3,7 +3,7 @@ joblib==0.11
 scikit-learn==0.19.1
 pandas==0.22.0
 setuptools==39.2.0
-numpy==1.14.2
+numpy==1.22.0
 scipy==1.1.0
 pytest==3.6.3
 flake8==3.5.0
