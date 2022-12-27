@@ -2,7 +2,7 @@ Cython==0.27.3
 joblib==0.11
 scikit-learn==0.19.1
 pandas==0.22.0
-setuptools==39.2.0
+setuptools==65.5.1
 numpy==1.14.2
 scipy==1.1.0
 pytest==3.6.3
